@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ostream>
-#include <string>
 #include <vector>
 
 enum Direction {
@@ -22,6 +21,8 @@ private:
     bool heavyPunch = false;
     bool lightKick = false;
     bool heavyKick = false;
+
+    unsigned char toBitfield() const;
 public:
     Button();
     ~Button();
@@ -37,7 +38,7 @@ public:
     void setHeavyKick(bool heavyKick);
     bool getHeavyKick() const;
 
-    std::string toString() const;
+    const char* toString() const;
 };
 
 bool operator==(const Button& lhs, const Button& rhs);

@@ -1,6 +1,7 @@
 #include "command_input_parser.hpp"
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <SDL3/SDL_error.h>
@@ -47,8 +48,12 @@ int main() {
     SDL_SetRenderLogicalPresentation(renderer, width, height,
                                      SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
-    SDL_Texture* idleTex =
-        IMG_LoadTexture(renderer, "data/characters/Debuggy.png");
+    SDL_Texture* idleTex = IMG_LoadTexture(renderer, (std::string(SDL_GetBasePath()) + "../../data/characters/Debuggy.png").c_str());
+    if (idleTex == nullptr) {
+        std::cout << "Error loading texture: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+    
     SDL_SetTextureScaleMode(idleTex, SDL_SCALEMODE_NEAREST);
 
     bool running = true;
@@ -80,7 +85,13 @@ int main() {
                 case SDL_EVENT_QUIT:
                     running = false;
                     break;
-#if !DEBUG_CONTROLLER
+#if DEBUG_CONTROLLER
+                case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                case SDL_EVENT_GAMEPAD_BUTTON_UP:
+                case SDL_EVENT_WINDOW_RESIZED:
+                    break;
+#else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
                     kip.setLeft(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A]);
@@ -90,12 +101,6 @@ int main() {
                     kip.setButton(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_I], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_K]);
                     break;
 #endif
-                /*
-                case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-                case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-                case SDL_EVENT_GAMEPAD_BUTTON_UP:
-                case SDL_EVENT_WINDOW_RESIZED:
-                */
                 default:
                     break;
             }
@@ -105,7 +110,7 @@ int main() {
             std::cout << cip.updateRecentInputs();
         }
 #else
-        std::cout << kip.updateRecentInputs().getHistory().back() << std::endl;
+        // std::cout << kip.updateRecentInputs().getHistory().back() << std::endl;
 #endif
         SDL_SetRenderDrawColor(renderer, 255U, 255U, 255U, 255U);
 

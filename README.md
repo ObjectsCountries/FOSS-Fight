@@ -18,7 +18,7 @@ FOSS Fight is a 4-button fighting game à la *Super Street Fighter II Turbo*, wi
 
 ### Tux
 
-Mascot of Linux. **Inspiration**: Shotos (various fighting games)
+Mascot of Linux. **Archetype**: Shoto
 
 * Slide (236K, air OK): Tux slides along the ground, or if done in the air, dives then slides.
 * Snowball (214P): Throws a snowball at the opponent, with the light version being slower but having more range than the heavy version.
@@ -27,7 +27,7 @@ Mascot of Linux. **Inspiration**: Shotos (various fighting games)
 
 ### Evil Tux
 
-Not a mascot, just an evil version of Tux. **Inspiration**: Evil Ryu (*Street Fighter*)
+Not a mascot, just an evil version of Tux. **Archetype**: Evil Shoto
 
 **NOTES**: Evil Tux will not be on the select screen. To select him, pick Tux and hold the button that selected him for 1 second.
 
@@ -38,7 +38,7 @@ Not a mascot, just an evil version of Tux. **Inspiration**: Evil Ryu (*Street Fi
 
 ### Konqi
 
-Mascot of KDE. **Inspiration**: Faust (*Guilty Gear*)
+Mascot of KDE. **Archetype**: Item Toss
 
 **NOTES**: Up to 2 items can be on screen at once (with Triple Item Toss as an exception). If an item is on screen, the same item cannot be summoned.
 
@@ -54,7 +54,7 @@ Mascot of KDE. **Inspiration**: Faust (*Guilty Gear*)
 
 ### Hyprchan
 
-Mascot of Hyprland. **Inspiration**: Answer (*Guilty Gear*), Vega (*Street Fighter*)
+Mascot of Hyprland. **Archetype**: Mixup
 
 **NOTES**: Hyprchan can have up to 5 tiles present at a time. It is possible to drift left and right during her descent from a tile. p.X means an input during Latch.
 
@@ -69,7 +69,7 @@ Mascot of Hyprland. **Inspiration**: Answer (*Guilty Gear*), Vega (*Street Fight
 
 ### Wilber
 
-Mascot of GIMP. **Inspiration**: Guile (*Street Fighter*)
+Mascot of GIMP. **Archetype**: Zoner
 
 * Square Boom (\[4]6P): Releases a spinning square projectile. 
 * Flash Flip (\[2]8K): Wilber flips in an arc. Invincible on startup, and is great for anti-airing.
@@ -78,7 +78,7 @@ Mascot of GIMP. **Inspiration**: Guile (*Street Fighter*)
 
 ### Godette (and GDBot)
 
-Mascots of Godot. **Inspiration**: Puppet characters (various fighting games)
+Mascots of Godot. **Archetype**: Puppet
 
 **NOTES**: GDBot cannot leave the ground outside of Leap. By default, Godette and GDBot move together, with GDBot's speed being noticeably slower. To move Godette without moving GDBot, hold down any attack button. To move GDBot without moving Godette, input down-forward or down-back.
 
@@ -93,7 +93,7 @@ Mascots of Godot. **Inspiration**: Puppet characters (various fighting games)
 
 ### Gnu
 
-Mascot of the GNU project (the G is not silent). **Inspiration**: Stance characters (various fighting games)
+Mascot of the GNU project (the G is not silent). **Archetype**: Stance
 
 **NOTES**: Gnu is a stance character, with two major modes as his stances, and minor modes that give him various buffs. Only two of the minor modes are available at any given time.
 
@@ -129,7 +129,7 @@ Mascot of the GNU project (the G is not silent). **Inspiration**: Stance charact
 
 ### Nolok
 
-The main villain of Super Tux and Super Tux Kart. **Inspiration**: Grapplers (various fighting games)
+The main villain of Super Tux and Super Tux Kart. **Archetype**: Grappler
 
 * Protect (22P): Creates a force field that protects from strikes, but not throws. Pulls opponent in on strikes, but Nolok cannot move while in this position. On-block advantage/disadvantage does not change for the attacker.
 * Give Me a Hug (63214P): Runs towards the opponent to grab them.
@@ -138,7 +138,7 @@ The main villain of Super Tux and Super Tux Kart. **Inspiration**: Grapplers (va
 
 ### Suzanne
 
-Mascot of Blender, AKA the "Blender Monkey". **Inspiration**: Venom (*Guilty Gear*)
+Mascot of Blender, AKA the "Blender Monkey". **Archetype**: Setplay
 
 * Summon Object (236X): Suzanne will summon the object she has available in a given position depending on the button used. Once on-screen, it can be attacked by Suzanne to move at a certain angle and velocity. Once a button has been used to place an object, that button cannot be used again until its corresponding object either despawns or hits the opponent (a shrugging animation will play when attempting this). The objects only differ in appearance, and all have the same hitbox.
 * Withdraw Object (214X): Withdraws the object summoned with the given button, or plays a shrugging animation if no object with that button is present.
@@ -147,7 +147,7 @@ Mascot of Blender, AKA the "Blender Monkey". **Inspiration**: Venom (*Guilty Gea
 
 ### Ferris
 
-Mascot of the Rust programming language. **Inspiration**: Yang (*Street Fighter*)
+Mascot of the Rust programming language. **Archetype**: Install
 
 **NOTES**: Only one of these moves can be active at a time. Ferris has a character-specific cooldown meter that controls when these moves can be used, as well as for how long. The meter starts off empty, but slowly fills over time. Inputting the command to activate a move while it's active will make it stop early, and preserve any remaining meter. Hitting or throwing Ferris will stop the move early as well, and empty the meter.
 
@@ -158,7 +158,7 @@ Mascot of the Rust programming language. **Inspiration**: Yang (*Street Fighter*
 
 ### Debuggy
 
-Debug character for FOSS Fight, serves as a joke character. **Inspiration**: Seth (*Street Fighter*), Dan (*Street Fighter*)
+Debug character for FOSS Fight. **Archetype**: Joke
 
 **NOTES**: Debuggy has a character-specific meter that starts off empty, fills up over time, and controls Debuggy's ability to use special moves. To play as Debuggy, compile the game from source with `-DDEBUGGY=1` as a flag.
 

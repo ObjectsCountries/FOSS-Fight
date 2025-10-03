@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 4.1)
 
-project("foss-fight" LANGUAGES C CXX)
+project("foss-fight" LANGUAGES CXX)
 
 find_package(SDL3 REQUIRED)
 find_package(SDL3_image REQUIRED)
@@ -12,7 +12,8 @@ file(GLOB foss-fight_SRC
    
 add_executable(foss-fight ${foss-fight_SRC})
 
-set_property(TARGET "foss-fight" PROPERTY CXX_STANDARD 20)
+set_property(TARGET "foss-fight" PROPERTY CXX_STANDARD 26)
+set_property(TARGET "foss-fight" PROPERTY CMAKE_C_STANDARD_REQUIRED ON)
 
 target_link_libraries("foss-fight" PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
 
