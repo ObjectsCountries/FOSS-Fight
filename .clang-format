@@ -1,0 +1,16 @@
+BasedOnStyle: Google
+AccessModifierOffset: -4 # No indentation for public:, protected: or private:
+DerivePointerAlignment: false
+IncludeBlocks: Regroup
+IncludeCategories: # Local header files, then standard library, then SDL
+  - Regex: '^".*"$'
+    Priority: 1
+    SortPriority: 1
+  - Regex: '^<SDL.*>$'
+    Priority: 3
+    SortPriority: 3
+  - Regex: '<.*>'
+    Priority: 2
+    SortPriority: 2
+IndentWidth: 4
+PointerAlignment: Left # Just the way I roll
