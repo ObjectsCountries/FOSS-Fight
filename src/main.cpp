@@ -1,3 +1,4 @@
+#include "character.hpp"
 #include "command_input_parser.hpp"
 
 #include <iostream>
@@ -38,6 +39,7 @@ int main() {
         return 1;
     }
 
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (renderer == nullptr) {
         std::cout << "Error initializing renderer: " << SDL_GetError()
@@ -48,18 +50,11 @@ int main() {
     SDL_SetRenderLogicalPresentation(renderer, width, height,
                                      SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
-    SDL_Texture* idleTex = IMG_LoadTexture(renderer, (std::string(SDL_GetBasePath()) + "../../data/characters/Debuggy.png").c_str());
-    if (idleTex == nullptr) {
-        std::cout << "Error loading texture: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-    
-    SDL_SetTextureScaleMode(idleTex, SDL_SCALEMODE_NEAREST);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+
+    SDL_SetRenderVSync(renderer, 60);
 
     bool running = true;
-
-    SDL_FRect* srcRect = new SDL_FRect{4.0f, 5.0f, 30.0f, 48.0f};
-    SDL_FRect* dstRect = new SDL_FRect{0.0f, 0.0f, 60.0f, 96.0f};
 
 #if DEBUG_CONTROLLER
     int* gamepadCount = nullptr;
@@ -75,8 +70,30 @@ int main() {
         }
     }
 #else
-    KeyboardCommandInputParser kip = KeyboardCommandInputParser(true);
+    auto kip = KeyboardCommandInputParser(true);
 #endif
+
+    Character* debuggy = nullptr;
+    try {
+        debuggy = new Character(renderer,
+                             SDL_IOFromFile(
+                                 (std::string(SDL_GetBasePath())
+                                     + "../data/characters/Debuggy.png").c_str(),
+                                     "rb"),
+                                   SDL_IOFromFile(
+                                 (std::string(SDL_GetBasePath())
+                                     + "../data/characters/Debuggy.ff").c_str(),
+                                     "rb"),
+                                 nullptr, 2.0f);
+    } catch (const char* e) {
+        std::cout << "ERROR constructing (const char*): " << e << std::endl;
+        return 1;
+    } catch (DataException<unsigned short>& e) {
+        std::cout << "ERROR constructing (DataException&): " << e.what() << std::endl;
+        return 1;
+    }
+
+
 
     while (running) {
         SDL_Event event;
@@ -94,11 +111,11 @@ int main() {
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    kip.setLeft(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A]);
-                    kip.setRight(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D]);
-                    kip.setUp(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_SPACE]);
-                    kip.setDown(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S]);
-                    kip.setButton(SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_I], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J], SDL_GetKeyboardState(NULL)[SDL_SCANCODE_K]);
+                    kip.setLeft(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_A]);
+                    kip.setRight(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D]);
+                    kip.setUp(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
+                    kip.setDown(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_S]);
+                    kip.setButton(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_U], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_I], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_J], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_K]);
                     break;
 #endif
                 default:
@@ -109,22 +126,21 @@ int main() {
         for (CommandInputParser cip : controllers) {
             std::cout << cip.updateRecentInputs();
         }
-#else
-        // std::cout << kip.updateRecentInputs().getHistory().back() << std::endl;
 #endif
-        SDL_SetRenderDrawColor(renderer, 255U, 255U, 255U, 255U);
-
         SDL_RenderClear(renderer);
-
-        SDL_RenderTexture(renderer, idleTex, srcRect, dstRect);
-
+        try {
+            debuggy->render(renderer);
+        } catch (const char* e) {
+            std::cout << "ERROR rendering: " << e << std::endl;
+            return 1;
+        }
+        SDL_SetRenderDrawColor(renderer, 0xFFU, 0xFFU, 0xFFU, 0xFFU);
         SDL_RenderPresent(renderer);
     }
 
 #if DEBUG_CONTROLLER
     SDL_free(gamepads);
 #endif
-    SDL_DestroyTexture(idleTex);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

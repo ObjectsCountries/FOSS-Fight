@@ -151,10 +151,10 @@ Mascot of the Rust programming language. **Archetype**: Install
 
 **NOTES**: Only one of these moves can be active at a time. Ferris has a character-specific cooldown meter that controls when these moves can be used, as well as for how long. The meter starts off empty, but slowly fills over time. Inputting the command to activate a move while it's active will make it stop early, and preserve any remaining meter. Hitting or throwing Ferris will stop the move early as well, and empty the meter.
 
-* &borrow\_checker (236P): Allows Ferris to leave their hurtbox where they're standing, and attack without being attacked.
-* macro\_rules! (236K): Records inputs until cooldown meter runs out or until 236K is inputted again. Inputting 236K will make a ghost of Ferris spawn in front of them and repeat the inputs. Summoning the ghost will not affect the cooldown meter.
-* #\[derive(Copy, Clone)] (214K): Creates a mirror of Ferris that copies their moves 20 frames after.
-* **Super Art**: Blazingly Fast (236236P): Ferris' moves gain enhanced properties temporarily: &borrow\_checker makes Ferris' original hurtbox disappear entirely, macro\_rules! will make the ghost execute the inputs twice, and #\[derive(Copy, Clone)]'s delay is reduced to 15 frames.
+* `&borrow_checker` (236P): Allows Ferris to leave their hurtbox where they're standing, and attack without being attacked.
+* `macro_rules!` (236K): Records inputs until cooldown meter runs out or until 236K is inputted again. Inputting 236K will make a ghost of Ferris spawn in front of them and repeat the inputs. Summoning the ghost will not affect the cooldown meter.
+* `#[derive(Copy, Clone)]` (214K): Creates a mirror of Ferris that copies their moves 20 frames after.
+* **Super Art**: Blazingly Fast (236236P): Ferris' moves gain enhanced properties temporarily: `&borrow_checker` makes Ferris' original hurtbox disappear entirely, `macro_rules!` will make the ghost execute the inputs twice, and `#[derive(Copy, Clone)]`'s delay is reduced to 15 frames.
 
 ### Debuggy
 
