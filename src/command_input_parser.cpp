@@ -2,19 +2,21 @@
 
 #include "input_history.hpp"
 
-#include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL.h>
 
-BaseCommandInputParser::BaseCommandInputParser(bool verticalSOCDIsUp)
-    : verticalSOCDIsUp{verticalSOCDIsUp},
+BaseCommandInputParser::BaseCommandInputParser(const bool verticalSOCDIsUp)
+: verticalSOCDIsUp{verticalSOCDIsUp},
+  left{false},
+  right{false},
+  up{false},
+  down{false},
     button{Button()}, recentInputs{InputHistory()} {}
 
-Direction BaseCommandInputParser::inputToDirection() { return NEUTRAL; }
+BaseCommandInputParser::~BaseCommandInputParser() = default;
 
-BaseCommandInputParser::~BaseCommandInputParser() {}
+Button& BaseCommandInputParser::getButton() { return this->button; }
 
-Button BaseCommandInputParser::getButton() { return this->button; }
-
-void BaseCommandInputParser::setButton(bool lightPunch, bool heavyPunch, bool lightKick, bool heavyKick) {
+void BaseCommandInputParser::setButton(const bool lightPunch, const bool heavyPunch, const bool lightKick, const bool heavyKick) {
     this->button.setLightPunch(lightPunch);
     this->button.setHeavyPunch(heavyPunch);
     this->button.setLightKick(lightKick);
@@ -28,7 +30,7 @@ InputHistory BaseCommandInputParser::updateRecentInputs() {
     return this->recentInputs;
 }
 
-bool BaseCommandInputParser::getSOCD() { return this->verticalSOCDIsUp; }
+bool BaseCommandInputParser::getSOCD() const { return this->verticalSOCDIsUp; }
 void BaseCommandInputParser::setSOCD(bool verticalSOCDIsUp) { this->verticalSOCDIsUp = verticalSOCDIsUp; }
 
 ControllerCommandInputParser::ControllerCommandInputParser(SDL_Gamepad* controller,
@@ -102,16 +104,19 @@ Direction ControllerCommandInputParser::inputToDirection() {
     }
 }
 
-KeyboardCommandInputParser::KeyboardCommandInputParser(bool verticalSOCDIsUp) :
-      left{false},
-      right{false},
-      up{false},
-      down{false},
-      BaseCommandInputParser(verticalSOCDIsUp) {}
+void BaseCommandInputParser::updateInput() {
+    this->left = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_A];
+    this->right = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D];
+    this->up = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE];
+    this->down = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_W];
+}
 
-KeyboardCommandInputParser::~KeyboardCommandInputParser() {}
+void ControllerCommandInputParser::updateInput() {
 
-Direction KeyboardCommandInputParser::inputToDirection() {
+}
+
+
+Direction BaseCommandInputParser::inputToDirection() {
     if (this->left && this->right) {
         this->left = false;
         this->right = false;
@@ -149,18 +154,18 @@ Direction KeyboardCommandInputParser::inputToDirection() {
     }
 }
 
-bool KeyboardCommandInputParser::getLeft() { return this->left; }
+bool BaseCommandInputParser::getLeft() const { return this->left; }
 
-void KeyboardCommandInputParser::setLeft(bool left) { this->left = left; }
+void BaseCommandInputParser::setLeft(const bool newLeft) { this->left = newLeft; }
 
-bool KeyboardCommandInputParser::getRight() { return this->right; }
+bool BaseCommandInputParser::getRight() const { return this->right; }
 
-void KeyboardCommandInputParser::setRight(bool right) { this->right = right; }
+void BaseCommandInputParser::setRight(const bool newRight) { this->right = newRight; }
 
-bool KeyboardCommandInputParser::getUp() { return this->up; }
+bool BaseCommandInputParser::getUp() const { return this->up; }
 
-void KeyboardCommandInputParser::setUp(bool up) { this->up = up; }
+void BaseCommandInputParser::setUp(const bool newUp) { this->up = newUp; }
 
-bool KeyboardCommandInputParser::getDown() { return this->down; }
+bool BaseCommandInputParser::getDown() const { return this->down; }
 
-void KeyboardCommandInputParser::setDown(bool down) { this->down = down; }
+void BaseCommandInputParser::setDown(const bool newDown) { this->down = newDown; }

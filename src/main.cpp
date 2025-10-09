@@ -5,24 +5,13 @@
 #include <string>
 #include <vector>
 
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_gamepad.h>
-#include <SDL3/SDL_init.h>
-#include <SDL3/SDL_joystick.h>
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_scancode.h>
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_surface.h>
-#include <SDL3/SDL_video.h>
-#include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL.h>
 
 #define DEBUG_CONTROLLER false
 
 constexpr int height = 720;
 constexpr int width = height * 16 / 9;
+constexpr int groundLength = 150;
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
@@ -66,25 +55,25 @@ int main() {
     } else {
         for (int i = 0; gamepads[i] != 0U; ++i) {
             controllers.push_back(
-                CommandInputParser(SDL_OpenGamepad(gamepads[i]), false));
+                ControllerCommandInputParser(SDL_OpenGamepad(gamepads[i]), true));
         }
     }
-#else
-    auto kip = KeyboardCommandInputParser(true);
 #endif
+
+    const char* name = "Debuggy";
+
+    const SDL_FRect* ground = new SDL_FRect(0, height - groundLength, width, groundLength + 1000);
 
     Character* debuggy = nullptr;
     try {
-        debuggy = new Character(renderer,
-                             SDL_IOFromFile(
-                                 (std::string(SDL_GetBasePath())
-                                     + "../data/characters/Debuggy.png").c_str(),
-                                     "rb"),
-                                   SDL_IOFromFile(
-                                 (std::string(SDL_GetBasePath())
-                                     + "../data/characters/Debuggy.ff").c_str(),
-                                     "rb"),
-                                 nullptr, 2.0f);
+        debuggy = new Character(name, renderer,
+#if DEBUG_CONTROLLER
+            controllers.at(0),
+#else
+            BaseCommandInputParser(true),
+#endif
+            ground,
+            4.0f);
     } catch (const char* e) {
         std::cout << "ERROR constructing (const char*): " << e << std::endl;
         return 1;
@@ -103,30 +92,24 @@ int main() {
                     running = false;
                     break;
 #if DEBUG_CONTROLLER
-                case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                case SDL_EVENT_JOYSTICK_AXIS_MOTION:
                 case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 case SDL_EVENT_GAMEPAD_BUTTON_UP:
-                case SDL_EVENT_WINDOW_RESIZED:
                     break;
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    kip.setLeft(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_A]);
-                    kip.setRight(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D]);
-                    kip.setUp(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
-                    kip.setDown(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_S]);
-                    kip.setButton(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_U], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_I], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_J], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_K]);
+                    debuggy->controller.setLeft(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_A]);
+                    debuggy->controller.setRight(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D]);
+                    debuggy->controller.setUp(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
+                    debuggy->controller.setDown(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_S]);
+                    debuggy->controller.setButton(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_U], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_I], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_J], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_K]);
                     break;
 #endif
                 default:
                     break;
             }
         }
-#if DEBUG_CONTROLLER
-        for (CommandInputParser cip : controllers) {
-            std::cout << cip.updateRecentInputs();
-        }
-#endif
         SDL_RenderClear(renderer);
         try {
             debuggy->render(renderer);

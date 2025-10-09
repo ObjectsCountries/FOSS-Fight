@@ -6,66 +6,78 @@
 
 Each animation begins with two bytes describing the type of animation it is.
 
-|  Number  | Data                  |
-|:--------:|:----------------------|
-| `0x0000` | Idle                  |
-| `0x0001` | Walking Forward       |
-| `0x0002` | Walking Backwards     |
-| `0x0003` | Crouch Transition     |
-| `0x0004` | Crouching             |
-| `0x0005` | Stand Blocking        |
-| `0x0006` | Stand Crouching       |
-| `0x0007` | Pre-Jump              |
-| `0x0008` | Jumping Forwards      |
-| `0x0009` | Jumping Neutral       |
-| `0x000A` | Jumping Backwards     |
-| `0x000B` | Stand Getting Hit     |
-| `0x000C` | Crouch Getting Hit    |
-| `0x000D` | Air Getting Hit       |
-| `0x000E` | Air Reset             |
-| `0x000F` | Knockdown             |
-| `0x0010` | Getting Up            |
-| `0x0011` | Standing Light Punch  |
-| `0x0012` | Standing Heavy Punch  |
-| `0x0013` | Standing Light Kick   |
-| `0x0014` | Standing Heavy Kick   |
-| `0x0015` | Crouching Light Punch |
-| `0x0016` | Crouching Heavy Punch |
-| `0x0017` | Crouching Light Kick  |
-| `0x0018` | Crouching Heavy Kick  |
-| `0x0019` | Jumping Light Punch   |
-| `0x001A` | Jumping Heavy Punch   |
-| `0x001B` | Jumping Light Kick    |
-| `0x001C` | Jumping Heavy Kick    |
-| `0x001D` | Forward Light Kick    |
-| `0x001E` | Throw Whiff           |
-| `0x001F` | Forward Throw         |
-| `0x0020` | Backwards Throw       |
+| Number  | Data                  |
+|:-------:|:----------------------|
+| `00 00` | Idle                  |
+| `00 01` | Walking Forward       |
+| `00 02` | Walking Backwards     |
+| `00 03` | Crouch Transition     |
+| `00 04` | Crouching             |
+| `00 05` | Stand Blocking        |
+| `00 06` | Stand Crouching       |
+| `00 07` | Pre-Jump              |
+| `00 08` | Jumping Forwards      |
+| `00 09` | Jumping Neutral       |
+| `00 0A` | Jumping Backwards     |
+| `00 0B` | Stand Getting Hit     |
+| `00 0C` | Crouch Getting Hit    |
+| `00 0D` | Air Getting Hit       |
+| `00 0E` | Air Reset             |
+| `00 0F` | Knockdown             |
+| `00 10` | Getting Up            |
+| `00 11` | Standing Light Punch  |
+| `00 12` | Standing Heavy Punch  |
+| `00 13` | Standing Light Kick   |
+| `00 14` | Standing Heavy Kick   |
+| `00 15` | Crouching Light Punch |
+| `00 16` | Crouching Heavy Punch |
+| `00 17` | Crouching Light Kick  |
+| `00 18` | Crouching Heavy Kick  |
+| `00 19` | Jumping Light Punch   |
+| `00 1A` | Jumping Heavy Punch   |
+| `00 1B` | Jumping Light Kick    |
+| `00 1C` | Jumping Heavy Kick    |
+| `00 1D` | Forward Light Kick    |
+| `00 1E` | Throw Whiff           |
+| `00 1F` | Forward Throw         |
+| `00 20` | Backwards Throw       |
 
-Anything above `0x0020` is character-specific.
+Anything greater than `00 20` is character-specific (such as specials).
 
-After these two bytes, another two bytes indicate how many frames this animation consists of. Then, the hitboxes, hurtboxes, etc. are detailed in order of left, top, right, bottom.
+After these two bytes, another two bytes indicate how many frames this animation consists of. Then, the hitboxes, hurtboxes, etc. are detailed in order of left, top, width, and height.
 
-|  Number  | Box Type            |
-|:--------:|:--------------------|
-| `0x0000` | Hurtbox             |
-| `0x0001` | Hitbox              |
-| `0x0002` | Grab Box            |
-| `0x0003` | Command Grab Box    |
-| `0x0004` | Throwbox            |
-| `0x0005` | Pushbox             |
-| `0x0006` | Proximity Guard Box |
+| Number  | Box Type            |
+|:-------:|:--------------------|
+| `00 00` | Hurtbox             |
+| `00 01` | Hitbox              |
+| `00 02` | Grab Box            |
+| `00 03` | Command Grab Box    |
+| `00 04` | Throwbox/Push Box   |
+| `00 05` | Proximity Guard Box |
 
-Example:
+Each defined hurtbox will have a pair of bytes defining its cancellability.
+
+| Number  | Cancellability      |
+|:-------:|:--------------------|
+| `00 00` | Not Cancelable      |
+| `00 01` | Specials Only       |
+| `00 02` | Supers Only         |
+| `00 03` | Specials and Supers |
+
+If a frame has a length of `FF FF`, that means that it is copying another frame's data. The first two bytes after `FF FF` represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). Then, `00 00` to copy the duration, or any other number to define manually. After the frame count, `00 01` to copy the location on the sprite sheet, or `00 00` to begin manual definition. Then, `00 01` to copy all boxes, and `00 00` to define manually. If a manually-defined box type has `FF FF` as its number of boxes, that means it is to be identical to that of the frame being copied.
+
+### Example
+
+(Note to self) To format data:
+
+1. Find `/(([0-9A-F]{2} ){2})/`, replace with `/\1 /`.
+2. Find `/((([0-9A-F]{2} ){2} ){8})/`, replace with `/\1\n/`.
+3. Find `/  $/` (two spaces before the `$`), replace with `//` (delete).
 
 ```hexdump
-F0 55  44 65  62 75  67 67  79 00  00 00  00 04  00 00
-00 01  00 00  00 00  00 32  00 32  00 01  00 00  00 02
-00 00  00 03  00 00  00 04  00 01  00 00  00 28  00 32
-00 32  00 05  00 01  00 00  00 28  00 32  00 32  00 06
-00 00
+
 ```
 
-`00 00` means that the following data is for the character's idle animation. The following `00 04` means that there are 4 frames. `00 00` afterwards means that a hurtbox is being described, and the `00 01` afterwards means that there is one hurtbox. `00 00 00 00 00 32 00 32` means that the part of the sprite sheet used for this hurtbox extends from (0, 0) to (50, 50). `00 01` begins to describe the frame's hitboxes, but `00 00` means there are none. The same applies for `00 02 00 00` and `00 03 00 00`, meaning no grab/command grab boxes. However, `00 04 00 01` means that there is one throwbox. Its coordinates on the sprite sheet are `00 00 00 28 00 32 00 32`, or from (0, 40) to (50, 50). The same applies for what comes after `00 05 00 01`, meaning there is a pushbox with the same coordinates. `00 06 00 00` means that there are no proximity guard boxes.
+`F0 55` means that the file is a FOSS Fight data file. `00 00` means that the following data is for the character's idle animation. The following `00 04` means that there are 4 frames. `00 00` afterward means that a hurtbox is being described, and the `00 01` afterward means that there is one hurtbox. `00 00 00 00 00 32 00 32` means that the part of the sprite sheet used for this hurtbox extends from (0, 0) to (50, 50). `00 01` begins to describe the frame's hitboxes, but `00 00` means there are none. The same applies for `00 02 00 00` and `00 03 00 00`, meaning no grab/command grab boxes. However, `00 04 00 01` means that there is one throwbox. Its coordinates on the sprite sheet are `00 00 00 28 00 32 00 32`, or from (0, 40) to (50, 50). The same applies for what comes after `00 05 00 01`, meaning there is a push box with the same coordinates. `00 06 00 00` means that there are no proximity guard boxes. Note that the fourth frame copies the sprite sheet location, frame data and boxes from the second frame.
 
 After all six types of boxes have been described for this frame, the next frame of the idle animation is detailed with the same format. After describing all four frames of the idle animation, the forward walk animation is described.

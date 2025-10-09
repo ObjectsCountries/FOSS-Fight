@@ -1,21 +1,25 @@
 #pragma once
 
+#include "command_input_parser.hpp"
+#include "input_history.hpp"
+
 #include <concepts>
 #include <exception>
+#include <map>
 #include <string>
 #include <vector>
 
 #include <SDL3/SDL.h>
 
-#define BOX_TYPE_COUNT static_cast<unsigned short>(6U)
 #define DEBUG_RENDER_BOXES true
 
 template <std::integral T>
 std::string format_number(T number, const bool hex);
 
-void setCoordinates(SDL_FRect** rect, float x, float y, float width, float height);
-void changeLocation(SDL_FRect** rect, float x, float y);
-void multiplySize(SDL_FRect** rect, float factor);
+void setCoordinatesRect(SDL_FRect*& rect, float x, float y, float width, float height);
+void changeLocationRect(SDL_FRect*& rect, float x, float y);
+void multiplySizeRect(SDL_FRect*& rect, float factor);
+void moveRect(SDL_FRect*& rect, float dx, float dy);
 
 template <std::integral T>
 class DataException : public std::exception {
@@ -49,64 +53,68 @@ enum BoxType : unsigned short {
     GRAB = 0x0002U,
     COMMAND_GRAB = 0x0003U,
     THROW_PUSH = 0x0004U,
-    PROXIMITY_GUARD = 0x0005U
+    PROXIMITY_GUARD = 0x0005U,
+    BOX_TYPE_COUNT = 0x0006U
 };
 
 bool boxTypeToColor(SDL_Renderer*& renderer, BoxType boxType, bool outline);
 
 class Box {
 private:
-    const BoxType boxType;
+    BoxType boxType;
     Buffer<unsigned short> buffer;
 public:
     Box(SDL_IOStream*& stream, const BoxType boxType);
-    ~Box() = default;
+    Box(const float x, const float y, const float width, const float height, const BoxType boxType);
     SDL_FRect* rect;
-    SDL_FRect* getRect() const;
     BoxType getBoxType() const;
 };
 
 class Frame {
 private:
-    std::vector<Box> boxes;
     Buffer<unsigned short> buffer;
     SDL_Texture* texture;
     unsigned short length;
     SDL_FRect* spriteSheetArea;
 public:
+    std::vector<Box> boxes;
     Frame(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
+    Frame(Frame& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
     ~Frame() = default;
     SDL_FRect* getSpriteSheetArea() const;
     unsigned short getLength() const;
-    std::vector<Box> getBoxes() const;
     void destroyTexture() const;
-    void render(SDL_Renderer*& renderer, SDL_FRect* location, const float size) const;
+    void render(SDL_Renderer*& renderer, const SDL_FRect* location) const;
 };
 
-class Animation {
-private:
-    std::vector<Frame> frames;
-public:
-    Animation(SDL_IOStream*& stream, unsigned short frameCount, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
-    ~Animation() = default;
-    std::vector<Frame> getFrames() const;
-};
 
 class Character {
 private:
+    static const SDL_FRect* ground;
     std::string name;
     unsigned short maxHealth = 500U;
     unsigned short currentHealth = 500U;
     const SDL_Surface* spriteSheet;
-    std::vector<Animation> animations;
+    std::map<unsigned short, std::vector<Frame>> animations;
     SDL_FRect* coordinates;
     size_t currentAnimation = 0UZ;
     size_t previousAnimation = currentAnimation;
-    size_t frame = 0UZ;
+    unsigned short frame = 0U;
     size_t sprite = 0UZ;
     float size;
+    bool midair = false;
+    const float speed = 4.0f;
+    const float walkBackSpeed = -3.0f;
+    const float jumpXVelocity = 8.0f;
+    const float initialJumpVelocity = 20.0f;
+    float currentYVelocity = 0.0f;
+    float gravity = 1.0f;
+    Direction jumpArc = UP;
 public:
-    Character(SDL_Renderer*& renderer, SDL_IOStream* sprites, SDL_IOStream* ffFile, SDL_FRect* coordinates, float size = 1.0f);
+    InputHistory inputs;
+    BaseCommandInputParser controller;
+    Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, const float size = 1.0f);
     ~Character();
+    size_t processInputs();
     void render(SDL_Renderer*& renderer);
 };
