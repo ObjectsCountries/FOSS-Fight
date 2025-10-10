@@ -82,7 +82,7 @@ void moveRect(SDL_FRect*& rect, const float dx, const float dy) {
 template <std::integral T>
 DataException<T>::DataException(std::string origin, std::string error, const T data) : origin{std::move(origin)}, error{std::move(error)}, data{data} {
     std::stringstream ss;
-    ss << "Origin: " << this->origin << std::endl << "Data: " << format_number<T>(this->data) << std::endl << "Error: " << this->error;
+    ss << "Origin: " << this->origin << std::endl << "Error: " << this->error << std::endl << "Data: " << format_number<T>(this->data) << std::endl;
     this->result = ss.str();
 }
 
@@ -312,8 +312,12 @@ Frame::Frame(const Frame& reference,
     } else {
         unsigned short coordinate;
         for (int i = 0; i < 4; ++i) {
-            SDL_ReadU16BE(stream, &coordinate);
-            this->buffer.assign(coordinate);
+            if (SDL_ReadU16BE(stream, &coordinate)) {
+                this->buffer.assign(coordinate);
+            } else {
+                const std::string error(SDL_GetError());
+                throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a frame and assigning to coordinate", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+            }
         }
         this->spriteSheetArea = new SDL_FRect(this->buffer.toFRect());
         this->buffer.clear();
@@ -328,9 +332,15 @@ Frame::Frame(const Frame& reference,
         unsigned short count;
         unsigned short bufferItem;
         do {
-            SDL_ReadU16BE(stream, &boxType);
+            if (!SDL_ReadU16BE(stream, &boxType)) {
+                const std::string error(SDL_GetError());
+                throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a frame and assigning to boxType", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+            }
             if (boxType != 0x0000U) {
-                SDL_ReadU16BE(stream, &count);
+                if (!SDL_ReadU16BE(stream, &count)) {
+                    const std::string error(SDL_GetError());
+                    throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a frame and assigning to count", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+                }
                 for (unsigned short j = 0x0000U; j < count; ++j) {
                     for (int k = 0; k < 4; ++k) {
                         if (SDL_ReadU16BE(stream, &bufferItem)) {
@@ -421,8 +431,8 @@ void Frame::render(SDL_Renderer*& renderer, const SDL_FRect* location) const {
 
 const SDL_FRect* Character::ground;
 
-Character::Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, const float size) :
-    name{name}, size{size}, inputs{InputHistory()}, controller{controller} {
+Character::Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox) :
+    name{name}, inputs{InputHistory()}, controller{controller} {
     Character::ground = groundBox;
     unsigned short data;
     SDL_IOStream* sprites = SDL_IOFromFile(
@@ -431,7 +441,10 @@ Character::Character(const char* name, SDL_Renderer*& renderer, const BaseComman
     SDL_IOStream* ffFile = SDL_IOFromFile(
     (std::string(SDL_GetBasePath()) + "../data/characters/" + this->name +
      ".ff").c_str(), "rb");
-    SDL_ReadU16BE(ffFile, &data);
+    if (!SDL_ReadU16BE(ffFile, &data)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while reading header", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
     if (data != 0xF055U) {
         throw DataException<unsigned short>(
             std::string(__PRETTY_FUNCTION__) + " while checking header", std::string("Invalid header"), data);
@@ -441,14 +454,59 @@ Character::Character(const char* name, SDL_Renderer*& renderer, const BaseComman
         throw DataException<int>(
             std::string(__PRETTY_FUNCTION__) + " while loading sprite sheet", std::string(SDL_GetError()));
     }
+    int sizeBits;
+    if (SDL_ReadS32BE(ffFile, &sizeBits)) {
+        this->size = reinterpret_cast<float&>(sizeBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to sizeBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int walkForwardSpeedBits;
+    if (SDL_ReadS32BE(ffFile, &walkForwardSpeedBits)) {
+        this->walkForwardSpeed = reinterpret_cast<float&>(walkForwardSpeedBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to walkForwardSpeedBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int walkBackwardSpeedBits;
+    if (SDL_ReadS32BE(ffFile, &walkBackwardSpeedBits)) {
+        this->walkBackwardSpeed = reinterpret_cast<float&>(walkBackwardSpeedBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to walkBackwardSpeedBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int jumpForwardXVelocityBits;
+    if (SDL_ReadS32BE(ffFile, &jumpForwardXVelocityBits)) {
+        this->jumpForwardXVelocity = reinterpret_cast<float&>(jumpForwardXVelocityBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to jumpForwardXVelocityBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int jumpBackwardXVelocityBits;
+    if (SDL_ReadS32BE(ffFile, &jumpBackwardXVelocityBits)) {
+        this->jumpBackwardXVelocity = reinterpret_cast<float&>(jumpBackwardXVelocityBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to jumpBackwardXVelocityBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int initialJumpVelocityBits;
+    if (SDL_ReadS32BE(ffFile, &initialJumpVelocityBits)) {
+        this->initialJumpVelocity = reinterpret_cast<float&>(initialJumpVelocityBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to initialJumpVelocityBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    int gravityBits;
+    if (SDL_ReadS32BE(ffFile, &gravityBits)) {
+        this->gravity = reinterpret_cast<float&>(gravityBits);
+    } else {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to gravityBits", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
     unsigned short animationIndex;
     unsigned short numberOfFrames;
     while (SDL_GetIOStatus(ffFile) != SDL_IO_STATUS_EOF) {
-        if (!SDL_ReadU16BE(ffFile, &animationIndex)) {
-            /*
-            const std::string error(SDL_GetError());
-            throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to animationIndex", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
-            */
+        if (!SDL_ReadU16BE(ffFile, &animationIndex)) { // reached EOF if function returns false
             break;
         }
         if (!SDL_ReadU16BE(ffFile, &numberOfFrames)) {
@@ -496,28 +554,30 @@ AnimationType Character::processInputs() {
     if (this->midair) {
         switch (this->jumpArc) {
             case UP_LEFT:
-                moveRect(this->coordinates, this->backJumpXVelocity, this->currentYVelocity);
+                moveRect(this->coordinates, this->jumpBackwardXVelocity, this->currentYVelocity);
                 for (std::vector<Frame>& frames : this->animations | std::views::values) {
                     for (Frame& fr : frames) {
                         for (std::vector<SDL_FRect*>& boxItems : fr.boxes | std::views::values) {
                             for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->backJumpXVelocity, this->currentYVelocity);
+                                moveRect(boxItem, this->jumpBackwardXVelocity, this->currentYVelocity);
                             }
                         }
                     }
                 }
+                this->currentXVelocity = this->jumpBackwardXVelocity;
                 break;
             case UP_RIGHT:
-                moveRect(this->coordinates, this->jumpXVelocity, this->currentYVelocity);
+                moveRect(this->coordinates, this->jumpForwardXVelocity, this->currentYVelocity);
                 for (std::vector<Frame>& frames : this->animations | std::views::values) {
                     for (Frame& fr : frames) {
                         for (std::vector<SDL_FRect*>& boxItems : fr.boxes | std::views::values) {
                             for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->jumpXVelocity, this->currentYVelocity);
+                                moveRect(boxItem, this->jumpForwardXVelocity, this->currentYVelocity);
                             }
                         }
                     }
                 }
+                this->currentXVelocity = this->jumpForwardXVelocity;
                 break;
             case UP:
                 moveRect(this->coordinates, 0.0f, this->currentYVelocity);
@@ -530,6 +590,7 @@ AnimationType Character::processInputs() {
                         }
                     }
                 }
+                this->currentXVelocity = 0.0f;
                 break;
             default:
                 break;
@@ -541,6 +602,7 @@ AnimationType Character::processInputs() {
                                        });
         if (it != (this->animations.at(this->currentAnimation).at(this->sprite).boxes).end()) {
             if (std::ranges::any_of(it->second, [](SDL_FRect*& box) {return SDL_HasRectIntersectionFloat(box, Character::ground);})) {
+                this->currentXVelocity = 0.0f;
                 this->currentYVelocity = 0.0f;
                 changeLocationRect(this->coordinates, this->coordinates->x, Character::ground->y - this->coordinates->h);
                 for (std::vector<Frame>& frames : this->animations | std::views::values) {
@@ -562,39 +624,42 @@ AnimationType Character::processInputs() {
             case DOWN_RIGHT:
                 break;
             case LEFT:
-                moveRect(this->coordinates, this->walkBackSpeed, 0.0f);
+                moveRect(this->coordinates, this->walkBackwardSpeed, 0.0f);
                 for (std::vector<Frame>& frames : this->animations | std::views::values) {
                     for (Frame& fr : frames) {
                         for (std::vector<SDL_FRect*>& boxItems : fr.boxes | std::views::values) {
                             for (SDL_FRect*& boxItem : boxItems) {
                                 changeLocationRect(boxItem, boxItem->x, ground->y - boxItem->h);
-                                moveRect(boxItem, this->walkBackSpeed, 0.0f);
+                                moveRect(boxItem, this->walkBackwardSpeed, 0.0f);
                             }
                         }
                     }
                 }
+                this->currentXVelocity = this->walkBackwardSpeed;
                 return WALKING_BACKWARD;
             case NEUTRAL:
+                this->currentXVelocity = 0.0f;
                 break;
             case RIGHT:
-                moveRect(this->coordinates, this->speed, 0.0f);
+                moveRect(this->coordinates, this->walkForwardSpeed, 0.0f);
                 for (std::vector<Frame>& frameVector : this->animations | std::views::values) {
                     for (Frame& fr : frameVector) {
                         for (std::vector<SDL_FRect*>& boxItems : fr.boxes | std::views::values) {
                             for (SDL_FRect*& boxItem : boxItems) {
                                 changeLocationRect(boxItem, boxItem->x, ground->y - boxItem->h);
-                                moveRect(boxItem, this->speed, 0.0f);
+                                moveRect(boxItem, this->walkForwardSpeed, 0.0f);
                             }
                         }
                     }
                 }
+                this->currentXVelocity = this->walkForwardSpeed;
                 return WALKING_FORWARD;
             case UP_LEFT:
             case UP:
             case UP_RIGHT:
                 this->midair = true;
                 this->jumpArc = this->controller.inputToDirection();
-                this->currentYVelocity = -1.0f * this->initialJumpVelocity;
+                this->currentYVelocity = this->initialJumpVelocity;
                 break;
         }
     }

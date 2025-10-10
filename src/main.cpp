@@ -79,8 +79,7 @@ int main() {
 #else
             BaseCommandInputParser(true),
 #endif
-            ground,
-            4.0f);
+            ground);
     } catch (DataException<boxConstructionError>& e) {
         std::cout << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
         return 1;

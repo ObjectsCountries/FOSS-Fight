@@ -104,4 +104,3 @@ TODO: Fill in with Debuggy data, update explanations
 
 * Add jumping data for Debuggy
 * Add horizontal walls
-* Add speed/velocity/gravity data to \*.ff file
