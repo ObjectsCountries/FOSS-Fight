@@ -13,6 +13,13 @@ constexpr int height = 720;
 constexpr int width = height * 16 / 9;
 constexpr int groundLength = 150;
 
+typedef char boxConstructionError;
+typedef unsigned char boxRenderError;
+typedef unsigned short headerError;
+typedef int frameConstructionError;
+typedef unsigned int frameRenderError;
+typedef long dataReadingError;
+
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
         std::cout << "Error initializing SDL: " << SDL_GetError() << std::endl;
@@ -74,14 +81,25 @@ int main() {
 #endif
             ground,
             4.0f);
-    } catch (const char* e) {
-        std::cout << "ERROR constructing (const char*): " << e << std::endl;
+    } catch (DataException<boxConstructionError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<unsigned short>& e) {
-        std::cout << "ERROR constructing (DataException&): " << e.what() << std::endl;
+    } catch (DataException<boxRenderError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
+        return 1;
+    } catch (DataException<headerError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Header Error)" << std::endl << e.what() << std::endl;
+        return 1;
+    } catch (DataException<frameConstructionError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
+        return 1;
+    } catch (DataException<frameRenderError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
+        return 1;
+    } catch (DataException<dataReadingError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     }
-
 
 
     while (running) {

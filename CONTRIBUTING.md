@@ -64,6 +64,8 @@ Each defined hurtbox will have a pair of bytes defining its cancellability.
 | `00 02` | Supers Only         |
 | `00 03` | Specials and Supers |
 
+If a box's coordinates are with `FF FF` and it is not part of a copied frame, that means that it covers the entire asset as one whole rectangle.
+
 If a frame has a length of `FF FF`, that means that it is copying another frame's data. The first two bytes after `FF FF` represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). Then, `00 00` to copy the duration, or any other number to define manually. After the frame count, `00 01` to copy the location on the sprite sheet, or `00 00` to begin manual definition. Then, `00 01` to copy all boxes, and `00 00` to define manually. If a manually-defined box type has `FF FF` as its number of boxes, that means it is to be identical to that of the frame being copied.
 
 ### Example
@@ -74,10 +76,14 @@ If a frame has a length of `FF FF`, that means that it is copying another frame'
 2. Find `/((([0-9A-F]{2} ){2} ){8})/`, replace with `/\1\n/`.
 3. Find `/  $/` (two spaces before the `$`), replace with `//` (delete).
 
+TODO: Fill in with Debuggy data, update explanations
+
 ```hexdump
 
 ```
 
-`F0 55` means that the file is a FOSS Fight data file. `00 00` means that the following data is for the character's idle animation. The following `00 04` means that there are 4 frames. `00 00` afterward means that a hurtbox is being described, and the `00 01` afterward means that there is one hurtbox. `00 00 00 00 00 32 00 32` means that the part of the sprite sheet used for this hurtbox extends from (0, 0) to (50, 50). `00 01` begins to describe the frame's hitboxes, but `00 00` means there are none. The same applies for `00 02 00 00` and `00 03 00 00`, meaning no grab/command grab boxes. However, `00 04 00 01` means that there is one throwbox. Its coordinates on the sprite sheet are `00 00 00 28 00 32 00 32`, or from (0, 40) to (50, 50). The same applies for what comes after `00 05 00 01`, meaning there is a push box with the same coordinates. `00 06 00 00` means that there are no proximity guard boxes. Note that the fourth frame copies the sprite sheet location, frame data and boxes from the second frame.
+## To Do
 
-After all six types of boxes have been described for this frame, the next frame of the idle animation is detailed with the same format. After describing all four frames of the idle animation, the forward walk animation is described.
+* Add jumping data for Debuggy next time
+* Rework copying to use bits
+* Add horizontal walls

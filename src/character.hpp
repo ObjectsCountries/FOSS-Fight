@@ -14,7 +14,7 @@
 #define DEBUG_RENDER_BOXES true
 
 template <std::integral T>
-std::string format_number(T number, const bool hex);
+std::string format_number(T number, const bool hex = true, const bool uppercase = true);
 
 void setCoordinatesRect(SDL_FRect*& rect, float x, float y, float width, float height);
 void changeLocationRect(SDL_FRect*& rect, float x, float y);
@@ -24,11 +24,12 @@ void moveRect(SDL_FRect*& rect, float dx, float dy);
 template <std::integral T>
 class DataException : public std::exception {
 private:
-    std::string origin;
-    T data;
-    std::string message;
+    const std::string origin;
+    const std::string error;
+    const T data;
+    std::string result;
 public:
-    DataException(const char* origin, const T data, const char* message);
+    DataException(std::string origin, std::string error, const T data = {});
     const char* what() const noexcept override;
 };
 
@@ -64,7 +65,7 @@ private:
     BoxType boxType;
     Buffer<unsigned short> buffer;
 public:
-    Box(SDL_IOStream*& stream, const BoxType boxType);
+    Box(SDL_IOStream*& stream, const BoxType boxType, SDL_FRect*& copy);
     Box(const float x, const float y, const float width, const float height, const BoxType boxType);
     SDL_FRect* rect;
     BoxType getBoxType() const;
@@ -79,7 +80,7 @@ private:
 public:
     std::vector<Box> boxes;
     Frame(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
-    Frame(Frame& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
+    Frame(const Frame& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
     ~Frame() = default;
     SDL_FRect* getSpriteSheetArea() const;
     unsigned short getLength() const;
@@ -106,6 +107,7 @@ private:
     const float speed = 4.0f;
     const float walkBackSpeed = -3.0f;
     const float jumpXVelocity = 8.0f;
+    const float backJumpXVelocity = -8.0f;
     const float initialJumpVelocity = 20.0f;
     float currentYVelocity = 0.0f;
     float gravity = 1.0f;
