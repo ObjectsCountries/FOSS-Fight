@@ -14,7 +14,7 @@ Each animation begins with two bytes describing the type of animation it is.
 | `00 03` | Crouch Transition     |
 | `00 04` | Crouching             |
 | `00 05` | Stand Blocking        |
-| `00 06` | Stand Crouching       |
+| `00 06` | Crouch Blocking       |
 | `00 07` | Pre-Jump              |
 | `00 08` | Jumping Forwards      |
 | `00 09` | Jumping Neutral       |
@@ -25,48 +25,66 @@ Each animation begins with two bytes describing the type of animation it is.
 | `00 0E` | Air Reset             |
 | `00 0F` | Knockdown             |
 | `00 10` | Getting Up            |
-| `00 11` | Standing Light Punch  |
-| `00 12` | Standing Heavy Punch  |
-| `00 13` | Standing Light Kick   |
-| `00 14` | Standing Heavy Kick   |
-| `00 15` | Crouching Light Punch |
-| `00 16` | Crouching Heavy Punch |
-| `00 17` | Crouching Light Kick  |
-| `00 18` | Crouching Heavy Kick  |
-| `00 19` | Jumping Light Punch   |
-| `00 1A` | Jumping Heavy Punch   |
-| `00 1B` | Jumping Light Kick    |
-| `00 1C` | Jumping Heavy Kick    |
-| `00 1D` | Forward Light Kick    |
-| `00 1E` | Throw Whiff           |
-| `00 1F` | Forward Throw         |
-| `00 20` | Backwards Throw       |
+| `01 00` | Standing Light Punch  |
+| `01 01` | Standing Heavy Punch  |
+| `01 02` | Standing Light Kick   |
+| `01 03` | Standing Heavy Kick   |
+| `01 04` | Crouching Light Punch |
+| `01 05` | Crouching Heavy Punch |
+| `01 06` | Crouching Light Kick  |
+| `01 07` | Crouching Heavy Kick  |
+| `01 08` | Jumping Light Punch   |
+| `01 09` | Jumping Heavy Punch   |
+| `01 0A` | Jumping Light Kick    |
+| `01 0B` | Jumping Heavy Kick    |
+| `01 0C` | Forward Light Kick    |
+| `01 80` | Forward Throw         |
+| `01 81` | Backwards Throw       |
+| `02 00` | Special 1             |
+| `02 01` | Special 2             |
+| `02 02` | Special 3             |
+| `02 03` | Special 4             |
+| `02 04` | Special 5             |
+| `02 05` | Special 6             |
+| `02 06` | Special 7             |
+| `02 07` | Special 8             |
+| `02 08` | Special 9             |
+| `02 09` | Special 10            |
+| `03 00` | Super                 |
 
-Anything greater than `00 20` is character-specific (such as specials).
+For Gnu, if a pair of bytes begins with `10`, `11`, `12`, or `13`, these are his Gatling mode sprites.
 
 After these two bytes, another two bytes indicate how many frames this animation consists of. Then, the hitboxes, hurtboxes, etc. are detailed in order of left, top, width, and height.
 
-| Number  | Box Type            |
-|:-------:|:--------------------|
-| `00 00` | Hurtbox             |
-| `00 01` | Hitbox              |
-| `00 02` | Grab Box            |
-| `00 03` | Command Grab Box    |
-| `00 04` | Throwbox/Push Box   |
-| `00 05` | Proximity Guard Box |
+| Number  | Box Type                             |
+|:-------:|:-------------------------------------|
+| `00 00` | Null Terminator                      |
+| `00 01` | Hurtbox                              |
+| `00 02` | Grab Box                             |
+| `00 03` | Command Grab Box                     |
+| `00 04` | Throwbox and Push Box                |
+| `00 05` | Proximity Guard Box                  |
+| `01 00` | Non-Cancelable Hitbox                |
+| `01 01` | Special-Cancelable Hitbox            |
+| `01 02` | Super-Cancelable Hitbox              |
+| `01 03` | Special- and Super-Cancelable Hitbox |
 
-Each defined hurtbox will have a pair of bytes defining its cancellability.
+If a frame's length begins with `FF`, that means that it is copying another frame's data. The byte after `FF` determines which information to copy (most significant bit first). In order, the bits are:
 
-| Number  | Cancellability      |
-|:-------:|:--------------------|
-| `00 00` | Not Cancelable      |
-| `00 01` | Specials Only       |
-| `00 02` | Supers Only         |
-| `00 03` | Specials and Supers |
+1. Frame Length
+2. Sprite Sheet Location
+3. Hurtboxes
+4. Grab Boxes
+5. Command Grab Boxes
+6. Throwboxes & Push Boxes
+7. Proximity Guard Boxes
+8. Hitboxes
 
-If a box's coordinates are with `FF FF` and it is not part of a copied frame, that means that it covers the entire asset as one whole rectangle.
+A value of 1 means to copy from the other frame, and 0 means to define it explicitly. The definitions are implicitly ordered.  
 
-If a frame has a length of `FF FF`, that means that it is copying another frame's data. The first two bytes after `FF FF` represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). Then, `00 00` to copy the duration, or any other number to define manually. After the frame count, `00 01` to copy the location on the sprite sheet, or `00 00` to begin manual definition. Then, `00 01` to copy all boxes, and `00 00` to define manually. If a manually-defined box type has `FF FF` as its number of boxes, that means it is to be identical to that of the frame being copied.
+The first two bytes afterward represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). 
+
+If a box's coordinates are `FF FF` and it is not part of a copied frame, that means that it covers the entire asset as one whole rectangle.
 
 ### Example
 
@@ -84,6 +102,6 @@ TODO: Fill in with Debuggy data, update explanations
 
 ## To Do
 
-* Add jumping data for Debuggy next time
-* Rework copying to use bits
+* Add jumping data for Debuggy
 * Add horizontal walls
+* Add speed/velocity/gravity data to \*.ff file
