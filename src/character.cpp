@@ -184,21 +184,22 @@ const char* CopyInformation::what() const noexcept {
 bool boxTypeToColor(SDL_Renderer*& renderer, BoxType boxType, const bool translucent) {
     const uint8_t alpha = translucent ? 0x80U : 0xFFU;
     switch (boxType) {
+        case NULL_TERMINATOR:
+            return true;
         case HURTBOX:
-            return SDL_SetRenderDrawColor(renderer, 0x00U, 0x00U, 0xFFU, alpha);
+            return SDL_SetRenderDrawColor(renderer, 0x00U, 0x00U, 0xFFU, alpha); // blue
         case GRAB:
-            return SDL_SetRenderDrawColor(renderer, 0x00U, 0xFFU, 0x00U, alpha);
         case COMMAND_GRAB:
-            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0x00U, 0xFFU, alpha);
+            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0xA5U, 0x00U, alpha); // orange
         case THROW_PUSH:
-            return SDL_SetRenderDrawColor(renderer, 0x00U, 0xFFU, 0xFFU, alpha);
+            return SDL_SetRenderDrawColor(renderer, 0x00U, 0xFFU, 0x00U, alpha); // green
         case PROXIMITY_GUARD:
-            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0xFFU, 0x00U, alpha);
+            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0xFFU, 0x00U, alpha); // yellow
         case NON_CANCELABLE_HITBOX:
         case SPECIAL_CANCELABLE_HITBOX:
         case SUPER_CANCELABLE_HITBOX:
         case SPECIAL_SUPER_CANCELABLE_HITBOX:
-            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0x00U, 0x00U, alpha);
+            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0x00U, 0x00U, alpha); // red
         default:
             throw DataException<unsigned char>(
                 std::string(__PRETTY_FUNCTION__) +
@@ -256,7 +257,7 @@ Frame::Frame(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*&
             const std::string error(SDL_GetError());
             throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to boxType", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
         }
-        if (boxType != 0x0000U) {
+        if (boxType != NULL_TERMINATOR) {
             if (!SDL_ReadU16BE(stream, &count)) {
                 const std::string error(SDL_GetError());
                 throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to count", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
@@ -274,7 +275,7 @@ Frame::Frame(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*&
                 this->buffer.clear();
             }
         }
-    } while (boxType != 0x0000U);
+    } while (boxType != NULL_TERMINATOR);
 }
 
 
@@ -336,7 +337,7 @@ Frame::Frame(const Frame& reference,
                 const std::string error(SDL_GetError());
                 throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a frame and assigning to boxType", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
             }
-            if (boxType != 0x0000U) {
+            if (boxType != NULL_TERMINATOR) {
                 if (!SDL_ReadU16BE(stream, &count)) {
                     const std::string error(SDL_GetError());
                     throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a frame and assigning to count", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
@@ -353,7 +354,7 @@ Frame::Frame(const Frame& reference,
                     this->boxes[static_cast<BoxType>(boxType)].emplace_back(new SDL_FRect(buffer.toFRect()));
                 }
             }
-        } while (boxType != 0x0000U);
+        } while (boxType != NULL_TERMINATOR);
     }
     bool mustCopy = false;
     for (const auto& [type, allBoxes] : reference.boxes) {

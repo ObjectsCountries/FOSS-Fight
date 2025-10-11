@@ -4,7 +4,17 @@
 
 \*.ff files are how FOSS Fight character data is stored. The header is `F0 55`, which represents "FOSS".
 
-Each animation begins with two bytes describing the type of animation it is.
+Each file will begin with floating point numbers representing movement stats, in this order:
+
+1. Size
+2. Walking Forward Speed
+3. Walking Backward Speed
+4. Forward Jump X-Velocity
+5. Backward Jump X-Velocity
+6. Initial Jump Velocity
+7. Gravity
+
+Then, the character sprite animations are described. Each animation begins with two bytes describing the type of animation it is.
 
 | Number  | Data                  |
 |:-------:|:----------------------|
@@ -52,9 +62,13 @@ Each animation begins with two bytes describing the type of animation it is.
 | `02 09` | Special 10            |
 | `03 00` | Super                 |
 
-For Gnu, if a pair of bytes begins with `10`, `11`, `12`, or `13`, these are his Gatling mode sprites.
+Anything beginning with `04` describes miscellaneous assets such as projectiles.
 
-After these two bytes, another two bytes indicate how many frames this animation consists of. Then, the hitboxes, hurtboxes, etc. are detailed in order of left, top, width, and height.
+For Gnu, these describe his Footsies mode sprites. If a pair of bytes begins with `10`, `11`, `12`, or `13`, these are his Gatling mode sprites.
+
+After these two bytes, another two bytes indicate how many different sprites this animation consists of.
+
+For each sprite, the first 4 pairs of bytes are the location of the asset on the sprite sheet, in order of leftmost pixel, uppermost pixel, width and height. Then, the boxes are described.
 
 | Number  | Box Type                             |
 |:-------:|:-------------------------------------|
@@ -80,11 +94,11 @@ If a frame's length begins with `FF`, that means that it is copying another fram
 7. Proximity Guard Boxes
 8. Hitboxes
 
-A value of 1 means to copy from the other frame, and 0 means to define it explicitly. The definitions are implicitly ordered.  
+A value of 1 means to copy this information, and 0 means to define it explicitly. The definitions are implicitly ordered.  
 
 The first two bytes afterward represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). 
 
-If a box's coordinates are `FF FF` and it is not part of a copied frame, that means that it covers the entire asset as one whole rectangle.
+If a box's coordinates are `FF FF`, that means that it covers the entire asset as one whole rectangle.
 
 ### Example
 
@@ -94,13 +108,12 @@ If a box's coordinates are `FF FF` and it is not part of a copied frame, that me
 2. Find `/((([0-9A-F]{2} ){2} ){8})/`, replace with `/\1\n/`.
 3. Find `/  $/` (two spaces before the `$`), replace with `//` (delete).
 
-TODO: Fill in with Debuggy data, update explanations
-
 ```hexdump
 
 ```
 
 ## To Do
 
+* Fill in code box with Debuggy data
 * Add jumping data for Debuggy
 * Add horizontal walls

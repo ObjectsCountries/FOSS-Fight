@@ -49,6 +49,7 @@ public:
 };
 
 enum BoxType : unsigned short {
+    NULL_TERMINATOR = 0x0000U,
     HURTBOX = 0x0001U,
     GRAB = 0x0002U,
     COMMAND_GRAB = 0x0003U,
@@ -57,7 +58,7 @@ enum BoxType : unsigned short {
     NON_CANCELABLE_HITBOX = 0x0100U,
     SPECIAL_CANCELABLE_HITBOX = 0x0101U,
     SUPER_CANCELABLE_HITBOX = 0x0102U,
-    SPECIAL_SUPER_CANCELABLE_HITBOX = 0x0103U,
+    SPECIAL_SUPER_CANCELABLE_HITBOX = 0x0103U
 };
 
 enum AnimationType : unsigned short {
