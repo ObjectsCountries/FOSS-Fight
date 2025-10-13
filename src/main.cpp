@@ -80,22 +80,22 @@ int main() {
             BaseCommandInputParser(true),
 #endif
             ground);
-    } catch (DataException<boxConstructionError>& e) {
+    } catch (const DataException<boxConstructionError>& e) {
         std::cout << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<boxRenderError>& e) {
+    } catch (const DataException<boxRenderError>& e) {
         std::cout << "ERROR constructing " << name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<headerError>& e) {
+    } catch (const DataException<headerError>& e) {
         std::cout << "ERROR constructing " << name << "! (Header Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<frameConstructionError>& e) {
+    } catch (const DataException<frameConstructionError>& e) {
         std::cout << "ERROR constructing " << name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<frameRenderError>& e) {
+    } catch (const DataException<frameRenderError>& e) {
         std::cout << "ERROR constructing " << name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
-    } catch (DataException<dataReadingError>& e) {
+    } catch (const DataException<dataReadingError>& e) {
         std::cout << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     }

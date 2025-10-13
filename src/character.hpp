@@ -53,7 +53,7 @@ enum BoxType : unsigned short {
     HURTBOX = 0x0001U,
     GRAB = 0x0002U,
     COMMAND_GRAB = 0x0003U,
-    THROW_PUSH = 0x0004U,
+    THROW_PUSH_GROUND_COLLISION = 0x0004U,
     PROXIMITY_GUARD = 0x0005U,
     NON_CANCELABLE_HITBOX = 0x0100U,
     SPECIAL_CANCELABLE_HITBOX = 0x0101U,
@@ -172,12 +172,14 @@ bool boxTypeToColor(SDL_Renderer*& renderer, BoxType boxType, bool outline);
 
 class Frame {
 private:
-    Buffer<unsigned short> buffer;
+    Buffer<unsigned short> spriteSheetBuffer;
+    Buffer<signed short> boxBuffer;
     SDL_Texture* texture;
     unsigned short length;
     SDL_FRect* spriteSheetArea;
 public:
     std::map<BoxType, std::vector<SDL_FRect*>> boxes;
+    std::map<BoxType, std::vector<SDL_FRect*>> boxesWithLocation;
     Frame(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
     Frame(const Frame& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet, const CopyInformation& copy);
     ~Frame() = default;
