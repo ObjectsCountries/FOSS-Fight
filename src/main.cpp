@@ -15,6 +15,7 @@ constexpr int groundLength = 150;
 
 typedef char boxConstructionError;
 typedef unsigned char boxRenderError;
+typedef short paletteReadingError;
 typedef unsigned short headerError;
 typedef int frameConstructionError;
 typedef unsigned int frameRenderError;
@@ -103,6 +104,9 @@ int main() {
         return 1;
     } catch (const DataException<dataReadingError>& e) {
         std::cout << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
+        return 1;
+    } catch (const DataException<paletteReadingError>& e) {
+        std::cout << "ERROR constructing " << name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     }
 

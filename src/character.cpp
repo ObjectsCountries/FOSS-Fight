@@ -438,7 +438,7 @@ void Sprite::render(SDL_Renderer*& renderer, const SDL_FRect* location) const {
 
 const SDL_FRect* Character::ground;
 
-Character::Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox) :
+Character::Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, const unsigned short paletteIndex) :
     name{name}, inputs{InputHistory()}, controller{controller} {
     Character::ground = groundBox;
     unsigned short data;
@@ -460,6 +460,70 @@ Character::Character(const char* name, SDL_Renderer*& renderer, const BaseComman
     if (this->spriteSheet == nullptr) {
         throw DataException<int>(
             std::string(__PRETTY_FUNCTION__) + " while loading sprite sheet", std::string(SDL_GetError()));
+    }
+    unsigned short numberOfPalettes;
+    if (!SDL_ReadU16BE(ffFile, &numberOfPalettes)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to numberOfPalettes", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    unsigned short numberOfColors;
+    if (!SDL_ReadU16BE(ffFile, &numberOfColors)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to numberOfColors", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+    }
+    for (unsigned short i = 0x0000U; i < numberOfPalettes; ++i) {
+        this->altPalettes.push_back(SDL_CreatePalette(numberOfColors));
+        if (this->altPalettes.at(i) == nullptr) {
+            throw DataException<short>(std::string(__PRETTY_FUNCTION__) + " while creating alternative palette", std::string(SDL_GetError()), i);
+        }
+        for (unsigned short j = 0x0000U; j < numberOfColors; ++j) {
+            uint8_t r, g, b;
+            if (!SDL_ReadU8(ffFile, &r)) {
+                const std::string error(SDL_GetError());
+                throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to r", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+            }
+            if (!SDL_ReadU8(ffFile, &g)) {
+                const std::string error(SDL_GetError());
+                throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to g", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+            }
+            if (!SDL_ReadU8(ffFile, &b)) {
+                const std::string error(SDL_GetError());
+                throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to b", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));
+            }
+            if (!SDL_SetPaletteColors(this->altPalettes.at(i), new SDL_Color(r, g, b, 0xFFU), j, 1)) {
+                throw DataException<short>(std::string(__PRETTY_FUNCTION__) + " while setting palette colors", std::string(SDL_GetError()), j);
+            }
+        }
+    }
+    this->basePalette = SDL_CreatePalette(this->altPalettes.at(0)->ncolors);
+    if (this->basePalette == nullptr) {
+        throw DataException<short>(std::string(__PRETTY_FUNCTION__) + " while creating base palette", std::string(SDL_GetError()));
+    }
+    for (int i = 0; i < this->basePalette->ncolors; ++i) {
+        this->basePalette->colors[i] = SDL_Color(this->altPalettes.at(0)->colors[i].r,
+                                                 this->altPalettes.at(0)->colors[i].g,
+                                                 this->altPalettes.at(0)->colors[i].b,
+                                                 this->altPalettes.at(0)->colors[i].a);
+    }
+    if (paletteIndex != 0x0000U) {
+        unsigned int* pixels = static_cast<unsigned int*>(this->spriteSheet->pixels);
+        int pixelCount = this->spriteSheet->w * this->spriteSheet->h;
+        unsigned int color, baseColor;
+        for (int i = 0; i < this->altPalettes.at(paletteIndex)->ncolors; ++i) {
+            baseColor = (this->basePalette->colors[i].a << 24)
+                  | (this->basePalette->colors[i].b << 16)
+                  | (this->basePalette->colors[i].g << 8)
+                  | this->basePalette->colors[i].r;
+            color = (this->altPalettes.at(paletteIndex)->colors[i].a << 24)
+                  | (this->altPalettes.at(paletteIndex)->colors[i].b << 16)
+                  | (this->altPalettes.at(paletteIndex)->colors[i].g << 8)
+                  | this->altPalettes.at(paletteIndex)->colors[i].r;
+            for (int j = 0; j < pixelCount; ++j) {
+                if (pixels[j] == baseColor) {
+                    pixels[j] = color;
+                }
+            }
+        }
     }
     int sizeBits;
     if (SDL_ReadS32BE(ffFile, &sizeBits)) {

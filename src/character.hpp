@@ -375,6 +375,8 @@ private:
     float gravity; /**< The speed at which the character falls (pixels/frame^2). */
     float currentXVelocity = 0.0f; /**< The current x-velocity of the character (pixels/frame). */
     float currentYVelocity = 0.0f; /**< The current y-velocity of the character (pixels/frame). */
+    SDL_Palette* basePalette; /**< The base color scheme of the character. */
+    std::vector<SDL_Palette*> altPalettes; /**< The alternative color schemes of the character. */
     Direction jumpArc = UP; /**< The direction in which this character is jumping, either @c Direction::UP_BACK, @c Direction::UP or @c Direction::UP_FORWARD . */
 public:
     InputHistory inputs; /**< The input history of the character. */
@@ -385,9 +387,10 @@ public:
      * @param renderer The renderer to render this character onto.
      * @param controller The controller used for this character.
      * @param groundBox The box representing the ground.
+     * @param paletteIndex The palette to choose from.
      * @exception DataException Throws a @c DataException<long> when encountering issues reading data, a <c>DataException<unsigned short></c> when the header of the data file is not <c>F0 55</c>, and a @c DataException<int> when encountering issues loading the sprite sheet.
      */
-    Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox);
+    Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, unsigned short paletteIndex = 0x0000U);
     /**
      * Destroys all the textures.
      */

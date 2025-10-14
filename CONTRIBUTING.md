@@ -4,7 +4,9 @@
 
 \*.ff files are how FOSS Fight character data is stored. The header is `F0 55`, which represents "FOSS".
 
-Each file will begin with floating point numbers representing movement stats, in this order:
+The first two bytes detailed describe the number of different palettes. Then, the number of different colors is detailed. Afterward, groups of 3 bytes serve to represent each color. The next same-amount of groups of 3 bytes are the alternative color. More colors will be added as development continues.
+
+Then, floating point numbers are detailed that represent stats, in this order:
 
 1. Size
 2. Walking Forward Speed
@@ -126,21 +128,34 @@ If a box's coordinates are `FF FF`, that means that it covers the entire asset a
 
 (Note to self) To format data:
 
-1. Find `/(([0-9A-F]{2} ){2})/`, replace with `/\1 /`.
-2. Find `/((([0-9A-F]{2} ){2} ){8})/`, replace with `/\1\n/`.
-3. Find `/  $/` (two spaces before the `$`), replace with `//` (delete).
+1. Find `/(([0-9A-F]{2} ){16})/`, replace with `/\1\n/`.
+2. Find `/ $/`, replace with `//` (delete).
 
 ```hexdump
-F0 55  40 80  00 00  40 80  00 00  C0 40  00 00  41 00
-00 00  C1 00  00 00  C1 A0  00 00  3F 80  00 00  00 00
-00 04  00 05  00 09  00 08  00 17  00 2A  00 00  00 00
-00 01  00 01  00 00  00 00  00 1A  00 2A  00 03  00 01
-00 00  00 20  00 1A  00 0A  00 00  FF BF  00 00  00 00
-00 2D  00 09  00 19  00 29  FF BF  00 00  00 00  00 55
-00 09  00 1A  00 2A  FF FF  00 00  00 01
+F0 55 00 03 00 01 00 00 00 FF 00 00 00 00 FF 40
+80 00 00 40 80 00 00 C0 40 00 00 41 00 00 00 C1
+00 00 00 C1 A0 00 00 3F 80 00 00 00 00 00 04 00
+05 00 09 00 08 00 17 00 2A 00 00 00 00 00 01 00
+01 00 00 00 00 00 1A 00 2A 00 03 00 01 00 00 00
+20 00 1A 00 0A 00 00 FF BF 00 00 00 00 00 2D 00
+09 00 19 00 29 FF BF 00 00 00 00 00 55 00 09 00
+1A 00 2A FF FF 00 00 00 01
 ```
+
+The file begins with the header of `F0 55`.
+
+Then, it describes 3 color palettes, each with one color. The colors of #000000 for the first, #FF0000 for the second and #0000FF for the third are used.
+
+The next 7 groups of 4 bytes represent floating point numbers of the stats described near the top of this document, ending after `3F 80 00 00`.
+
+Then, animation `00 00` (idle) is described, consisting of 4 sprites. The first sprite has a length of 5 frames. The next 4 pairs of bytes describe its location and dimensions on the sprite sheet. The `00 00 00 00` afterward indicates that it has 0 horizontal offset, and 0 vertical offset.
+
+`00 01` begins to describe the sprite's hurtboxes, with the `00 01` afterward indicating that there is one hurtbox. This hurtbox's coordinates are detailed, then the same is done for the throw/push/ground collision box. The `00 00` afterward indicates the end of box description.
+
+`FF BF` indicates that this frame copies from another frame. `BF` in binary is `10111111`, meaning that this sprite copies everything but the sprite sheet location. `00 00` indicates that it will take from the idle animation, and the next `00 00` indicates that it will take from the first sprite. The sprite sheet location is then explicitly described. The third frame takes the same action, but describes a different sprite sheet location.
+
+Finally, `FF FF 00 00 00 01` means to make an exact copy of the second sprite of the idle animation, including the sprite sheet location.
 
 ## To Do
 
-* Add explanation of data
 * Add horizontal walls
