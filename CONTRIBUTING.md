@@ -16,89 +16,109 @@ Each file will begin with floating point numbers representing movement stats, in
 
 Then, the character sprite animations are described. Each animation begins with two bytes describing the type of animation it is.
 
-| Number  | Data                     |
-|:-------:|:-------------------------|
-| `00 00` | Idle                     |
-| `00 01` | Walking Forward          |
-| `00 02` | Walking Backwards        |
-| `00 03` | Crouch Transition        |
-| `00 04` | Crouching                |
-| `00 05` | Stand Blocking           |
-| `00 06` | Crouch Blocking          |
-| `00 07` | Pre-Jump                 |
-| `00 08` | Jumping Forwards         |
-| `00 09` | Jumping Neutral          |
-| `00 0A` | Jumping Backwards        |
-| `00 0B` | Stand Getting Hit        |
-| `00 0C` | Crouch Getting Hit       |
-| `00 0D` | Air Getting Hit          |
-| `00 0E` | Air Reset                |
-| `00 0F` | Knockdown                |
-| `00 10` | Getting Up               |
-| `00 11` | Victory Animation        |
-| `00 12` | Time Over Loss Animation |
-| `01 00` | Standing Light Punch     |
-| `01 01` | Standing Heavy Punch     |
-| `01 02` | Standing Light Kick      |
-| `01 03` | Standing Heavy Kick      |
-| `01 04` | Crouching Light Punch    |
-| `01 05` | Crouching Heavy Punch    |
-| `01 06` | Crouching Light Kick     |
-| `01 07` | Crouching Heavy Kick     |
-| `01 08` | Jumping Light Punch      |
-| `01 09` | Jumping Heavy Punch      |
-| `01 0A` | Jumping Light Kick       |
-| `01 0B` | Jumping Heavy Kick       |
-| `01 0C` | Forward Light Kick       |
-| `01 80` | Forward Throw            |
-| `01 81` | Backwards Throw          |
-| `02 00` | Special 1                |
-| `02 01` | Special 2                |
-| `02 02` | Special 3                |
-| `02 03` | Special 4                |
-| `02 04` | Special 5                |
-| `02 05` | Special 6                |
-| `02 06` | Special 7                |
-| `02 07` | Special 8                |
-| `02 08` | Special 9                |
-| `02 09` | Special 10               |
-| `03 00` | Super                    |
+| Number  | Data                      |
+|:-------:|:--------------------------|
+| `00 00` | Idle                      |
+| `00 01` | Walking Forward           |
+| `00 02` | Walking Backwards         |
+| `00 03` | Crouch Transition         |
+| `00 04` | Crouching                 |
+| `00 05` | Stand Blocking            |
+| `00 06` | Crouch Blocking           |
+| `00 07` | Pre-Jump                  |
+| `00 08` | Jumping Forwards          |
+| `00 09` | Jumping Neutral           |
+| `00 0A` | Jumping Backwards         |
+| `00 0B` | Stand Getting Hit         |
+| `00 0C` | Crouch Getting Hit        |
+| `00 0D` | Air Getting Hit           |
+| `00 0E` | Air Reset                 |
+| `00 0F` | Knockdown                 |
+| `00 10` | Getting Up                |
+| `00 11` | Victory Animation         |
+| `00 12` | Time Over Loss Animation  |
+| `01 00` | Standing Light Punch      |
+| `01 01` | Standing Heavy Punch      |
+| `01 02` | Standing Light Kick       |
+| `01 03` | Standing Heavy Kick       |
+| `01 10` | Crouching Light Punch     |
+| `01 11` | Crouching Heavy Punch     |
+| `01 12` | Crouching Light Kick      |
+| `01 13` | Crouching Heavy Kick      |
+| `01 20` | Jumping Light Punch       |
+| `01 21` | Jumping Heavy Punch       |
+| `01 22` | Jumping Light Kick        |
+| `01 23` | Jumping Heavy Kick        |
+| `01 04` | Forward Light Kick        |
+| `01 80` | Forward Throw             |
+| `01 81` | Backwards Throw           |
+| `02 00` | Special 1                 |
+| `02 01` | Special 2                 |
+| `02 02` | Special 3                 |
+| `02 03` | Special 4                 |
+| `02 04` | Special 5                 |
+| `02 05` | Special 6                 |
+| `02 06` | Special 7                 |
+| `02 07` | Special 8                 |
+| `02 08` | Special 9                 |
+| `02 09` | Special 10                |
+| `03 00` | Super                     |
+| `04 00` | Misc. Asset 1             |
+| `04 01` | Misc. Asset 2             |
+| `04 02` | Misc. Asset 3             |
+| `04 03` | Misc. Asset 4             |
+| `04 04` | Misc. Asset 5             |
+| `04 05` | Misc. Asset 6             |
+| `04 06` | Misc. Asset 7             |
+| `04 07` | Misc. Asset 8             |
+| `04 08` | Misc. Asset 9             |
+| `04 09` | Misc. Asset 10            |
+| `05 00` | Character Meter Asset 1   |
+| `05 01` | Character Meter Asset 2   |
+| `05 02` | Character Meter Asset 3   |
+| `05 03` | Character Meter Asset 4   |
+| `05 04` | Character Meter Asset 5   |
+| `05 05` | Character Meter Asset 6   |
+| `05 06` | Character Meter Asset 7   |
+| `05 07` | Character Meter Asset 8   |
+| `05 08` | Character Meter Asset 9   |
+| `05 09` | Character Meter Asset 10  |
+| `FF 00` | Character Selection Image |
+| `FF 01` | Post-Game Win Image       |
+| `FF 02` | Post-Game Loss Image      |
 
-For Gnu, these describe his Footsies mode sprites. If a pair of bytes begins with `10`, `11`, `12`, or `13`, these are his Gatling mode sprites.
-
-Anything beginning with `04` or `14` describes miscellaneous assets such as projectiles.
+For Gnu, these describe his Footsies mode sprites. If a pair of bytes begins with `10`, `11`, etc., these are his Gatling mode sprites.
 
 After these two bytes, another two bytes indicate how many different sprites this animation consists of.
 
-For each sprite, the first 4 pairs of bytes are the location of the asset on the sprite sheet, in order of leftmost pixel, uppermost pixel, width and height. Then, the boxes are described.
+For each sprite, the first pair of bytes is how many frames (1/60 of a second) to display it for. Then, the next 4 pairs of bytes are the location of the asset on the sprite sheet, in order of leftmost pixel, uppermost pixel, width and height. Then, two pairs of bytes describe a `signed short` of a visual offset (horizontal and vertical, respectively). Then, the boxes are described.
 
 | Number  | Box Type                                |
 |:-------:|:----------------------------------------|
 | `00 00` | Null Terminator                         |
 | `00 01` | Hurtbox                                 |
-| `00 02` | Grab Box                                |
-| `00 03` | Command Grab Box                        |
-| `00 04` | Throwbox, Push Box and Ground Collision |
-| `00 05` | Proximity Guard Box                     |
+| `00 02` | Grab and Command Grab Box               |
+| `00 03` | Throwbox, Push Box and Ground Collision |
+| `00 04` | Proximity Guard Box                     |
 | `01 00` | Non-Cancelable Hitbox                   |
 | `01 01` | Special-Cancelable Hitbox               |
 | `01 02` | Super-Cancelable Hitbox                 |
 | `01 03` | Special- and Super-Cancelable Hitbox    |
 
-If a frame's length begins with `FF`, that means that it is copying another frame's data. The byte after `FF` determines which information to copy (most significant bit first). In order, the bits are:
+If a sprite's length begins with `FF`, that means that it is copying another sprite's data. The byte after `FF` determines which information to copy (most significant bit first). In order, the bits are:
 
-1. Frame Length
+1. Sprite Length
 2. Sprite Sheet Location
-3. Hurtboxes
-4. Grab Boxes
-5. Command Grab Boxes
-6. Throwboxes & Push Boxes
+3. Offset
+4. Hurtboxes
+5. Grab and Command Grab Boxes
+6. Throwboxes, Push Boxes and Ground Collision Boxes
 7. Proximity Guard Boxes
 8. Hitboxes
 
 A value of 1 means to copy this information, and 0 means to define it explicitly. The definitions are implicitly ordered.  
 
-The first two bytes afterward represent the animation type to copy from, and the next two bytes are the frame index (starting from 0). 
+The first two bytes afterward represent the animation type to copy from, and the next two bytes are the sprite index (starting from 0). 
 
 If a box's coordinates are `FF FF`, that means that it covers the entire asset as one whole rectangle.
 
@@ -111,10 +131,16 @@ If a box's coordinates are `FF FF`, that means that it covers the entire asset a
 3. Find `/  $/` (two spaces before the `$`), replace with `//` (delete).
 
 ```hexdump
-
+F0 55  40 80  00 00  40 80  00 00  C0 40  00 00  41 00
+00 00  C1 00  00 00  C1 A0  00 00  3F 80  00 00  00 00
+00 04  00 05  00 09  00 08  00 17  00 2A  00 00  00 00
+00 01  00 01  00 00  00 00  00 1A  00 2A  00 03  00 01
+00 00  00 20  00 1A  00 0A  00 00  FF BF  00 00  00 00
+00 2D  00 09  00 19  00 29  FF BF  00 00  00 00  00 55
+00 09  00 1A  00 2A  FF FF  00 00  00 01
 ```
 
 ## To Do
 
-* Fill in code box with Debuggy data
+* Add explanation of data
 * Add horizontal walls

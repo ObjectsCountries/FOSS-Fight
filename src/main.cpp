@@ -53,16 +53,20 @@ int main() {
     bool running = true;
 
 #if DEBUG_CONTROLLER
-    int* gamepadCount = nullptr;
+    int gamepadCount = 0;
     std::vector<ControllerCommandInputParser> controllers{};
-    SDL_JoystickID* gamepads = SDL_GetGamepads(gamepadCount);
+    SDL_JoystickID* gamepads = SDL_GetGamepads(&gamepadCount);
 
     if (gamepads == nullptr) {
         std::cout << "Error getting gamepads: " << SDL_GetError() << std::endl;
     } else {
-        for (int i = 0; gamepads[i] != 0U; ++i) {
+        for (int i = 0; i < gamepadCount; ++i) {
             controllers.push_back(
-                ControllerCommandInputParser(SDL_OpenGamepad(gamepads[i]), true));
+                ControllerCommandInputParser(SDL_OpenGamepad(gamepads[i]), true,
+                    SDL_GAMEPAD_BUTTON_WEST,
+                    SDL_GAMEPAD_BUTTON_NORTH,
+                    SDL_GAMEPAD_BUTTON_SOUTH,
+                    SDL_GAMEPAD_BUTTON_EAST));
         }
     }
 #endif
@@ -77,7 +81,9 @@ int main() {
 #if DEBUG_CONTROLLER
             controllers.at(0),
 #else
-            BaseCommandInputParser(true),
+            BaseCommandInputParser(true,
+                SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_SPACE, SDL_SCANCODE_S,
+                SDL_SCANCODE_U, SDL_SCANCODE_I, SDL_SCANCODE_J, SDL_SCANCODE_K),
 #endif
             ground);
     } catch (const DataException<boxConstructionError>& e) {
@@ -112,15 +118,14 @@ int main() {
                 case SDL_EVENT_JOYSTICK_AXIS_MOTION:
                 case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 case SDL_EVENT_GAMEPAD_BUTTON_UP:
+                    debuggy->controller.updateInput();
+                    debuggy->controller.setButtons();
                     break;
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    debuggy->controller.setLeft(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_A]);
-                    debuggy->controller.setRight(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D]);
-                    debuggy->controller.setUp(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
-                    debuggy->controller.setDown(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_S]);
-                    debuggy->controller.setButton(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_U], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_I], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_J], SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_K]);
+                    debuggy->controller.updateInput();
+                    debuggy->controller.setButtons();
                     break;
 #endif
                 default:

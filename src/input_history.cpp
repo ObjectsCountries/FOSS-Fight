@@ -3,27 +3,25 @@
 #include <ostream>
 #include <vector>
 
-Button::Button() : lightPunch{false}, heavyPunch{false}, lightKick{false}, heavyKick{false} {}
+ButtonGroup::ButtonGroup() : lightPunch{false}, heavyPunch{false}, lightKick{false}, heavyKick{false} {}
 
-Button::~Button() {}
-
-unsigned char Button::toBitfield() const {
+unsigned char ButtonGroup::toBitfield() const {
     return (this->heavyKick) | (this->heavyPunch << 1U) | (this->lightKick << 2U) | (this->lightPunch << 3U);
 }
 
-void Button::setLightPunch(bool lightPunch) { this->lightPunch = lightPunch; }
-bool Button::getLightPunch() const { return this->lightPunch; }
+void ButtonGroup::setLightPunch(bool lightPunch) { this->lightPunch = lightPunch; }
+bool ButtonGroup::getLightPunch() const { return this->lightPunch; }
 
-void Button::setHeavyPunch(bool heavyPunch) { this->heavyPunch = heavyPunch; }
-bool Button::getHeavyPunch() const { return this->heavyPunch; }
+void ButtonGroup::setHeavyPunch(bool heavyPunch) { this->heavyPunch = heavyPunch; }
+bool ButtonGroup::getHeavyPunch() const { return this->heavyPunch; }
 
-void Button::setLightKick(bool lightKick) { this->lightKick = lightKick; }
-bool Button::getLightKick() const { return this->lightKick; }
+void ButtonGroup::setLightKick(bool lightKick) { this->lightKick = lightKick; }
+bool ButtonGroup::getLightKick() const { return this->lightKick; }
 
-void Button::setHeavyKick(bool heavyKick) { this->heavyKick = heavyKick; }
-bool Button::getHeavyKick() const { return this->heavyKick; }
+void ButtonGroup::setHeavyKick(bool heavyKick) { this->heavyKick = heavyKick; }
+bool ButtonGroup::getHeavyKick() const { return this->heavyKick; }
 
-const char* Button::toString() const {
+const char* ButtonGroup::toString() const {
     switch (this->toBitfield()) {
         case 1U:
             return "HK";
@@ -60,17 +58,15 @@ const char* Button::toString() const {
     }
 }
 
-bool operator==(const Button& lhs, const Button& rhs) {
+bool operator==(const ButtonGroup& lhs, const ButtonGroup& rhs) {
     return lhs.getLightPunch() == rhs.getLightPunch() &&
            lhs.getHeavyPunch() == rhs.getHeavyPunch() &&
            lhs.getLightKick() == rhs.getLightKick() &&
            lhs.getHeavyKick() == rhs.getHeavyKick();
 }
 
-InputHistoryEntry::InputHistoryEntry(Direction direction, Button button)
+InputHistoryEntry::InputHistoryEntry(Direction direction, ButtonGroup button)
     : direction{direction}, duration{0U}, button{button} {}
-
-InputHistoryEntry::~InputHistoryEntry() {}
 
 void InputHistoryEntry::incrementDuration() { if (this->duration < 9999U) { ++this->duration; } }
 
@@ -78,16 +74,18 @@ Direction InputHistoryEntry::getDirection() const { return this->direction; }
 
 unsigned short InputHistoryEntry::getDuration() const { return this->duration; }
 
-Button InputHistoryEntry::getButton() const { return this->button; }
+ButtonGroup InputHistoryEntry::getButton() const { return this->button; }
 
 std::ostream& operator<<(std::ostream& os, const InputHistoryEntry& ihe) {
     os << ihe.direction << ihe.button.toString() << ' ' << ihe.duration;
     return os;
 }
 
-InputHistory::InputHistory() : history{} {}
+bool operator==(const InputHistoryEntry& lhs, const InputHistoryEntry& rhs) {
+    return lhs.getDirection() == rhs.getDirection() && lhs.getButton() == rhs.getButton();
+}
 
-InputHistory::~InputHistory() {}
+InputHistory::InputHistory() : history{} {}
 
 void InputHistory::addEntry(InputHistoryEntry entry) {
     if (!this->history.empty() && this->history.back() == entry) {
@@ -99,8 +97,4 @@ void InputHistory::addEntry(InputHistoryEntry entry) {
 
 std::vector<InputHistoryEntry> InputHistory::getHistory() {
     return this->history;
-}
-
-bool operator==(const InputHistoryEntry& lhs, const InputHistoryEntry& rhs) {
-    return lhs.getDirection() == rhs.getDirection() && lhs.getButton() == rhs.getButton();
 }
