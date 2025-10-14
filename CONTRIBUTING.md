@@ -66,7 +66,7 @@ Then, the character sprite animations are described. Each animation begins with 
 
 For Gnu, these describe his Footsies mode sprites. If a pair of bytes begins with `10`, `11`, `12`, or `13`, these are his Gatling mode sprites.
 
-Anything beginning with `04` describes miscellaneous assets such as projectiles.
+Anything beginning with `04` or `14` describes miscellaneous assets such as projectiles.
 
 After these two bytes, another two bytes indicate how many different sprites this animation consists of.
 

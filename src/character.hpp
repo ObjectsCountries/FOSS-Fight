@@ -13,26 +13,90 @@
 
 #define DEBUG_RENDER_BOXES true
 
+/**
+ * Formats a number to look pretty when printed.
+ *
+ * @tparam T Any kind of whole number.
+ * @param number The number to format.
+ * @param hex Whether to format in hexadecimal (@c true) or decimal (@c false).
+ * @param uppercase Whether hex digits and suffixes (U, L, etc.) are uppercase (@c true) or lowercase (@c false).
+ * @return The formatted version of the number.
+ */
 template <std::integral T>
-std::string format_number(T number, const bool hex = true, const bool uppercase = true);
+std::string format_number(T number, bool hex = true, bool uppercase = true);
 
+/**
+ * Changes the coordinates of a <c>SDL_FRect*</c>.
+ * @param rect The rectangle to modify.
+ * @param x The new x-coordinate.
+ * @param y The new y-coordinate.
+ * @param width The new width.
+ * @param height The new height.
+ */
 void setCoordinatesRect(SDL_FRect*& rect, float x, float y, float width, float height);
-void changeLocationRect(SDL_FRect*& rect, float x, float y);
+
+/**
+ * Changes the scale of a <c>SDL_FRect*</c>.
+ * @param rect The rectangle to change the scaling of.
+ * @param factor The factor of scaling.
+ */
 void multiplySizeRect(SDL_FRect*& rect, float factor);
+
+/**
+ * Changes the location of a <c>SDL_FRect*</c>.
+ * @param rect The rectangle to change the location of.
+ * @param x The new x-coordinate.
+ * @param y The new y-coordinate.
+ */
+void changeLocationRect(SDL_FRect*& rect, float x, float y);
+
+/**
+ * Changes the dimensions of a <c>SDL_FRect*</c>.
+ * @param rect The rectangle to change the dimensions of.
+ * @param width The new width.
+ * @param height The new height.
+ */
+void changeDimensionsRect(SDL_FRect*& rect, float width, float height);
+
+/**
+ * Moves a <c>SDL_FRect*</c>.
+ * @param rect The rectangle to move.
+ * @param dx The change in x-coordinate.
+ * @param dy The change in y-coordinate.
+ */
 void moveRect(SDL_FRect*& rect, float dx, float dy);
 
+
+/**
+ * Exception to be thrown when having issues reading a data file.
+ * @tparam T Any kind of whole number.
+ */
 template <std::integral T>
 class DataException : public std::exception {
 private:
-    const std::string origin;
-    const std::string error;
-    const T data;
-    std::string result;
+    const std::string origin; /**< The function that threw the exception. */
+    const std::string error; /**< The error in question. */
+    const T data; /**< The data surrounding the error. */
+    std::string result;  /**< A formatted string of the exception information. */
 public:
-    DataException(std::string origin, std::string error, const T data = {});
+    /**
+     * Constructs a <c>DataException</c>.
+     * @param origin The function that threw the exception.
+     * @param error The error in question.
+     * @param data The data surrounding the error.
+     */
+    DataException(std::string origin, std::string error, T data = {});
+    /**
+     * Describes the exception.
+     * @return A formatted string of the exception information.
+     */
     const char* what() const noexcept override;
 };
 
+/**
+ * A buffer that holds four items, meant to hold data for a <c>SDL_FRect*</c>.
+ * @tparam T Any kind of whole number.
+ */
 template <std::integral T>
 class Buffer {
 private:
@@ -147,7 +211,8 @@ enum AnimationType : unsigned short {
     ALT_STANCE_SPECIAL_8 = 0x1207U,
     ALT_STANCE_SPECIAL_9 = 0x1208U,
     ALT_STANCE_SPECIAL_10 = 0x1209U,
-    ALT_STANCE_SUPER = 0x1300U
+    ALT_STANCE_SUPER = 0x1300U,
+    NOTHING = 0xFFFFU
 };
 
 class CopyInformation : public std::exception {
@@ -201,6 +266,8 @@ private:
     SDL_FRect* coordinates;
     AnimationType currentAnimation = IDLE;
     AnimationType previousAnimation = currentAnimation;
+    AnimationType previousAction = previousAnimation;
+    AnimationType currentAttack = NOTHING;
     unsigned short frame = 0U;
     size_t sprite = 0UZ;
     bool midair = false;
@@ -219,6 +286,7 @@ public:
     BaseCommandInputParser controller;
     Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox);
     ~Character();
+    AnimationType processAttacks();
     AnimationType processInputs();
     void render(SDL_Renderer*& renderer);
 };

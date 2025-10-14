@@ -558,8 +558,63 @@ Character::~Character() {
     }
 }
 
+AnimationType Character::processAttacks() {
+    if (this->controller.getButton().getLightPunch()) {
+        this->controller.getButton().setLightPunch(false);
+        switch (this->currentAnimation) {
+            case CROUCH_TRANSITION:
+            case CROUCH:
+                return CROUCHING_LIGHT_PUNCH;
+            case JUMP_FORWARD:
+            case JUMP_NEUTRAL:
+            case JUMP_BACKWARD:
+                return JUMPING_LIGHT_PUNCH;
+            default:
+                return STANDING_LIGHT_PUNCH;
+        }
+    } else if (this->controller.getButton().getHeavyPunch()) {
+        this->controller.getButton().setHeavyPunch(false);
+        switch (this->currentAnimation) {
+            case CROUCH_TRANSITION:
+            case CROUCH:
+                return CROUCHING_HEAVY_PUNCH;
+            case JUMP_FORWARD:
+            case JUMP_NEUTRAL:
+            case JUMP_BACKWARD:
+                return JUMPING_HEAVY_PUNCH;
+            default:
+                return STANDING_HEAVY_PUNCH;
+        }
+    }
+    return NOTHING;
+}
+
 AnimationType Character::processInputs() {
+    if (this->currentAttack == NOTHING) {
+        this->currentAttack = this->processAttacks();
+        if (this->currentAttack != NOTHING) {
+            return this->currentAttack;
+        }
+    }
+    if (this->currentAnimation == this->currentAttack) {
+        if (this->frame >= this->animations.at(this->currentAnimation).at(this->sprite).getLength() - 1
+            && this->sprite >= this->animations.at(this->currentAnimation).size() - 1) {
+            this->currentAttack = NOTHING;
+            return this->previousAction;
+        } else {
+            return this->currentAttack;
+        }
+    }
     if (this->midair) {
+        if (this->currentAnimation != PRE_JUMP
+            && this->currentAnimation != JUMP_FORWARD
+            && this->currentAnimation != JUMP_NEUTRAL
+            && this->currentAnimation != JUMP_BACKWARD) {
+            return PRE_JUMP;
+        }
+        if (this->currentAnimation == PRE_JUMP && this->frame < this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
+            return PRE_JUMP;
+        }
         AnimationType arc = JUMP_NEUTRAL;
         switch (this->jumpArc) {
             case UP_LEFT:
@@ -634,8 +689,21 @@ AnimationType Character::processInputs() {
             case DOWN_LEFT:
             case DOWN:
             case DOWN_RIGHT:
-                break;
+                if ((this->currentAnimation == CROUCH_TRANSITION || this->currentAnimation == CROUCH) && this->frame == this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
+                    return CROUCH;
+                } else {
+                    return CROUCH_TRANSITION;
+                }
             case LEFT:
+                if (this->currentAnimation == CROUCH) {
+                    return CROUCH_TRANSITION;
+                } else if (this->currentAnimation == CROUCH_TRANSITION) {
+                    if (this->frame == this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
+                        return WALKING_BACKWARD;
+                    } else {
+                        return CROUCH_TRANSITION;
+                    }
+                }
                 moveRect(this->coordinates, this->walkBackwardSpeed, 0.0f);
                 for (std::vector<Frame>& frames : this->animations | std::views::values) {
                     for (Frame& fr : frames) {
@@ -649,9 +717,27 @@ AnimationType Character::processInputs() {
                 this->currentXVelocity = this->walkBackwardSpeed;
                 return WALKING_BACKWARD;
             case NEUTRAL:
+                if (this->currentAnimation == CROUCH) {
+                    return CROUCH_TRANSITION;
+                } else if (this->currentAnimation == CROUCH_TRANSITION) {
+                    if (this->frame == this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
+                        return IDLE;
+                    } else {
+                        return CROUCH_TRANSITION;
+                    }
+                }
                 this->currentXVelocity = 0.0f;
-                break;
+                return IDLE;
             case RIGHT:
+                if (this->currentAnimation == CROUCH) {
+                    return CROUCH_TRANSITION;
+                } else if (this->currentAnimation == CROUCH_TRANSITION) {
+                    if (this->frame == this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
+                        return WALKING_BACKWARD;
+                    } else {
+                        return CROUCH_TRANSITION;
+                    }
+                }
                 moveRect(this->coordinates, this->walkForwardSpeed, 0.0f);
                 for (std::vector<Frame>& frameVector : this->animations | std::views::values) {
                     for (Frame& fr : frameVector) {
@@ -684,6 +770,7 @@ void Character::render(SDL_Renderer*& renderer) {
     if (this->previousAnimation != this->currentAnimation) {
         this->sprite = 0UZ;
         this->frame = 0U;
+        this->previousAction = this->previousAnimation;
     }
     if (this->frame >= this->animations.at(this->currentAnimation).at(this->sprite).getLength()) {
         ++this->sprite;
