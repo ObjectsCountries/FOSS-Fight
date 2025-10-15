@@ -380,7 +380,7 @@ private:
     Direction jumpArc = UP; /**< The direction in which this character is jumping, either @c Direction::UP_BACK, @c Direction::UP or @c Direction::UP_FORWARD . */
 public:
     InputHistory inputs; /**< The input history of the character. */
-    BaseCommandInputParser controller; /**< The command input parser of the character. */
+    BaseCommandInputParser* controller; /**< The command input parser of the character. */
     /**
      * Constructs a character.
      * @param name The name of the character.
@@ -390,7 +390,7 @@ public:
      * @param paletteIndex The palette to choose from.
      * @exception DataException Throws a @c DataException<long> when encountering issues reading data, a <c>DataException<unsigned short></c> when the header of the data file is not <c>F0 55</c>, and a @c DataException<int> when encountering issues loading the sprite sheet.
      */
-    Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, unsigned short paletteIndex = 0x0000U);
+    Character(const char* name, SDL_Renderer*& renderer, BaseCommandInputParser* controller, const SDL_FRect*& groundBox, unsigned short paletteIndex = 0x0000U);
     /**
      * Destroys all the textures.
      */

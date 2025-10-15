@@ -7,11 +7,13 @@
 
 #include <SDL3/SDL.h>
 
-#define DEBUG_CONTROLLER false
+#define DEBUG_CONTROLLER true
 
 constexpr int height = 720;
 constexpr int width = height * 16 / 9;
 constexpr int groundLength = 150;
+
+constexpr unsigned int fpsDelay = 1000 / 60;
 
 typedef char boxConstructionError;
 typedef unsigned char boxRenderError;
@@ -23,7 +25,7 @@ typedef long dataReadingError;
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
-        std::cout << "Error initializing SDL: " << SDL_GetError() << std::endl;
+        std::cerr << "Error initializing SDL: " << SDL_GetError() << std::endl;
         return 1;
     }
 
@@ -31,15 +33,14 @@ int main() {
         SDL_CreateWindow("FOSS Fight", width, height, SDL_WINDOW_RESIZABLE);
 
     if (window == nullptr) {
-        std::cout << "Error initializing window: " << SDL_GetError()
+        std::cerr << "Error initializing window: " << SDL_GetError()
                   << std::endl;
         return 1;
     }
 
-
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (renderer == nullptr) {
-        std::cout << "Error initializing renderer: " << SDL_GetError()
+        std::cerr << "Error initializing renderer: " << SDL_GetError()
                   << std::endl;
         return 1;
     }
@@ -49,27 +50,36 @@ int main() {
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
 
-    SDL_SetRenderVSync(renderer, 60);
-
     bool running = true;
 
 #if DEBUG_CONTROLLER
-    int gamepadCount = 0;
-    std::vector<ControllerCommandInputParser> controllers{};
+    std::vector<ControllerCommandInputParser> controllers;
+    int gamepadCount;
     SDL_JoystickID* gamepads = SDL_GetGamepads(&gamepadCount);
-
+    std::vector<SDL_Gamepad*> pads;
     if (gamepads == nullptr) {
-        std::cout << "Error getting gamepads: " << SDL_GetError() << std::endl;
+        std::cerr << "Error getting gamepads: " << SDL_GetError() << std::endl;
+    } else if (gamepadCount == 0) {
+        std::cerr << "Error: no gamepads detected (set DEBUG_CONTROLLER to false to use keyboard)" << std::endl;
+        return 1;
     } else {
         for (int i = 0; i < gamepadCount; ++i) {
-            controllers.push_back(
-                ControllerCommandInputParser(SDL_OpenGamepad(gamepads[i]), true,
+            pads.push_back(SDL_OpenGamepad(gamepads[i]));
+            if (pads.at(i) == nullptr) {
+                std::cerr << "Error opening gamepad " << i << ": " << SDL_GetError() << std::endl;
+            }
+            controllers.emplace_back(pads.at(i), true,
                     SDL_GAMEPAD_BUTTON_WEST,
                     SDL_GAMEPAD_BUTTON_NORTH,
                     SDL_GAMEPAD_BUTTON_SOUTH,
-                    SDL_GAMEPAD_BUTTON_EAST));
+                    SDL_GAMEPAD_BUTTON_EAST);
         }
     }
+    ControllerCommandInputParser controller = controllers.at(0);
+#else
+    BaseCommandInputParser kip(true,
+        SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_SPACE, SDL_SCANCODE_S,
+        SDL_SCANCODE_U, SDL_SCANCODE_I, SDL_SCANCODE_J, SDL_SCANCODE_K);
 #endif
 
     const char* name = "Debuggy";
@@ -80,33 +90,31 @@ int main() {
     try {
         debuggy = new Character(name, renderer,
 #if DEBUG_CONTROLLER
-            controllers.at(0),
+        &controller,
 #else
-            BaseCommandInputParser(true,
-                SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_SPACE, SDL_SCANCODE_S,
-                SDL_SCANCODE_U, SDL_SCANCODE_I, SDL_SCANCODE_J, SDL_SCANCODE_K),
+            &kip,
 #endif
             ground);
     } catch (const DataException<boxConstructionError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<boxRenderError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<headerError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Header Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Header Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<frameConstructionError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<frameRenderError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<dataReadingError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<paletteReadingError>& e) {
-        std::cout << "ERROR constructing " << name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     }
 
@@ -122,14 +130,14 @@ int main() {
                 case SDL_EVENT_JOYSTICK_AXIS_MOTION:
                 case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 case SDL_EVENT_GAMEPAD_BUTTON_UP:
-                    debuggy->controller.updateInput();
-                    debuggy->controller.setButtons();
+                    dynamic_cast<ControllerCommandInputParser*>(debuggy->controller)->updateInput();
+                    dynamic_cast<ControllerCommandInputParser*>(debuggy->controller)->setButtons();
                     break;
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    debuggy->controller.updateInput();
-                    debuggy->controller.setButtons();
+                    debuggy->controller->updateInput();
+                    debuggy->controller->setButtons();
                     break;
 #endif
                 default:
@@ -140,11 +148,13 @@ int main() {
         try {
             debuggy->render(renderer);
         } catch (const char* e) {
-            std::cout << "ERROR rendering: " << e << std::endl;
+            std::cerr << "ERROR rendering: " << e << std::endl;
             return 1;
         }
         SDL_SetRenderDrawColor(renderer, 0xFFU, 0xFFU, 0xFFU, 0xFFU);
         SDL_RenderPresent(renderer);
+
+        SDL_Delay(fpsDelay);
     }
 
 #if DEBUG_CONTROLLER

@@ -438,7 +438,7 @@ void Sprite::render(SDL_Renderer*& renderer, const SDL_FRect* location) const {
 
 const SDL_FRect* Character::ground;
 
-Character::Character(const char* name, SDL_Renderer*& renderer, const BaseCommandInputParser& controller, const SDL_FRect*& groundBox, const unsigned short paletteIndex) :
+Character::Character(const char* name, SDL_Renderer*& renderer, BaseCommandInputParser* controller, const SDL_FRect*& groundBox, const unsigned short paletteIndex) :
     name{name}, inputs{InputHistory()}, controller{controller} {
     Character::ground = groundBox;
     unsigned short data;
@@ -624,8 +624,8 @@ Character::~Character() {
 }
 
 AnimationType Character::processAttacks() {
-    if (this->controller.getButton().getLightPunch()) {
-        this->controller.getButton().setLightPunch(false);
+    if (this->controller->getButton().getLightPunch()) {
+        this->controller->getButton().setLightPunch(false);
         switch (this->currentAnimation) {
             /*
             case CROUCH_TRANSITION:
@@ -639,8 +639,8 @@ AnimationType Character::processAttacks() {
             default:
                 return STAND_LIGHT_PUNCH;
         }
-    } else if (this->controller.getButton().getHeavyPunch()) {
-        this->controller.getButton().setHeavyPunch(false);
+    } else if (this->controller->getButton().getHeavyPunch()) {
+        this->controller->getButton().setHeavyPunch(false);
         switch (this->currentAnimation) {
             /*
             case CROUCH_TRANSITION:
@@ -753,7 +753,7 @@ AnimationType Character::processInputs() {
         }
         return arc;
     } else {
-        switch (this->controller.inputToDirection()) {
+        switch (this->controller->inputToDirection()) {
             case DOWN_BACK:
             case DOWN:
             case DOWN_FORWARD:
@@ -822,7 +822,7 @@ AnimationType Character::processInputs() {
             case UP:
             case UP_FORWARD:
                 this->midair = true;
-                this->jumpArc = this->controller.inputToDirection();
+                this->jumpArc = this->controller->inputToDirection();
                 this->currentYVelocity = this->initialJumpVelocity;
                 break;
         }

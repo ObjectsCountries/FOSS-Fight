@@ -97,7 +97,7 @@ InputHistory BaseCommandInputParser::updateRecentInputs() {
     return this->recentInputs;
 }
 
-ControllerCommandInputParser::ControllerCommandInputParser(SDL_Gamepad* controller,
+ControllerCommandInputParser::ControllerCommandInputParser(SDL_Gamepad*& controller,
                                                            const bool verticalSOCDIsUp,
                                                            const SDL_GamepadButton lightPunchButton,
                                                            const SDL_GamepadButton heavyPunchButton,
@@ -161,26 +161,10 @@ Direction ControllerCommandInputParser::inputToDirection() {
 }
 
 void ControllerCommandInputParser::updateInput() {
-    if (SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTX) >=
-            thresholdPositive ||
-        SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_LEFT)) {
-        this->left = true;
-    }
-    if (SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTX) <=
-            thresholdNegative ||
-        SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_RIGHT)) {
-        this->right = true;
-    }
-    if (SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTY) <=
-            thresholdNegative ||
-        SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_UP)) {
-        this->up = true;
-    }
-    if (SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTY) <=
-            thresholdPositive ||
-        SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_DOWN)) {
-        this->down = true;
-    }
+    this->left = SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTX) <= thresholdNegative || SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+    this->right = SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTX) >= thresholdPositive || SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+    this->up = SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTY) <= thresholdNegative || SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_UP);
+    this->down = SDL_GetGamepadAxis(this->controller, SDL_GAMEPAD_AXIS_LEFTY) >= thresholdPositive || SDL_GetGamepadButton(this->controller, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 }
 
 void ControllerCommandInputParser::setButtons() {

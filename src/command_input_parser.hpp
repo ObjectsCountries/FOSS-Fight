@@ -5,11 +5,11 @@
 #include <SDL3/SDL.h>
 
 /**
- * Determines how much of an analog stick input is needed to register a direction.
+ * Determines how much of an analog stick input is needed to register a positive direction.
  */
-constexpr short thresholdPositive = 200;
+constexpr short thresholdPositive = 15000;
 /**
- * Determines how much of an analog stick input is needed to register a direction.
+ * Determines how much of an analog stick input is needed to register a negative direction.
  */
 constexpr short thresholdNegative = -1 * thresholdPositive;
 
@@ -159,7 +159,7 @@ public:
      * @param lightKickButton The button to use for light kick.
      * @param heavyKickButton The button to use for heavy kick.
      */
-    ControllerCommandInputParser(SDL_Gamepad* controller, bool verticalSOCDIsUp,
+    ControllerCommandInputParser(SDL_Gamepad*& controller, bool verticalSOCDIsUp,
         SDL_GamepadButton lightPunchButton,
         SDL_GamepadButton heavyPunchButton,
         SDL_GamepadButton lightKickButton,
