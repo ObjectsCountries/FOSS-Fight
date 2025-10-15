@@ -7,7 +7,7 @@
 
 #include <SDL3/SDL.h>
 
-#define DEBUG_CONTROLLER true
+#define DEBUG_CONTROLLER false
 
 constexpr int height = 720;
 constexpr int width = height * 16 / 9;

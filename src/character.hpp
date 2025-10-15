@@ -308,7 +308,7 @@ public:
      * @exception DataException Throws a @c DataException<int> when running into issues creating the texture, and a @c DataException<long> when running into issues reading from the stream.
      * @exception CopyInformation Indicates that the sprite is a copy of a different sprite.
      */
-    Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet);
+    Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spriteSheet);
     /**
      * Copies data from another sprite, defining any non-copied data explicitly.
      * @param reference The sprite to copy from.
@@ -318,7 +318,7 @@ public:
      * @param copy The information about what to copy and what to define explicitly.
      * @exception DataException Throws a @c DataException<int> when running into issues creating the texture, and a @c DataException<long> when running into issues reading from the stream.
      */
-    Sprite(const Sprite& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet, const CopyInformation& copy);
+    Sprite(const Sprite& reference, SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spriteSheet, const CopyInformation& copy);
     /**
      * Destroys a sprite.
      */
@@ -355,7 +355,7 @@ private:
     std::string name; /**< The character's name. */
     unsigned short maxHealth = 500U; /**< The character's maximum health. */
     unsigned short currentHealth = 500U; /**< The character's current health. */
-    const SDL_Surface* spriteSheet; /**< The sprite sheet containing all the character's sprites. */
+    SDL_Surface* spriteSheet; /**< The sprite sheet containing all the character's sprites. */
     std::map<AnimationType, std::vector<Sprite>> animations; /**< The character's animations and moves. */
     SDL_FRect* coordinates; /**< The current coordinates of the character. */
     SDL_FRect* renderCoordinates; /**< The current rendering coordinates of the character. */

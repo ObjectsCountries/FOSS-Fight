@@ -191,7 +191,7 @@ bool boxTypeToColor(SDL_Renderer*& renderer, const BoxType boxType, const bool t
     }
 }
 
-Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface*& spriteSheet) {
+Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spriteSheet) {
     this->texture = SDL_CreateTexture(renderer, spriteSheet->format, SDL_TEXTUREACCESS_TARGET, spriteSheet->w, spriteSheet->h);
     if (this->texture == nullptr) {
         throw DataException<int>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->texture", std::string(SDL_GetError()));
@@ -273,7 +273,7 @@ Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, const SDL_Surface
 Sprite::Sprite(const Sprite& reference,
     SDL_IOStream*& stream,
     SDL_Renderer*& renderer,
-    const SDL_Surface*& spriteSheet,
+    SDL_Surface*& spriteSheet,
     const CopyInformation& copy) {
     this->texture = SDL_CreateTexture(renderer, spriteSheet->format, SDL_TEXTUREACCESS_TARGET, spriteSheet->w, spriteSheet->h);
     if (this->texture == nullptr) {
@@ -621,6 +621,11 @@ Character::~Character() {
             spriteItem.destroyTexture();
         }
     }
+    SDL_DestroyPalette(this->basePalette);
+    for (SDL_Palette* palette : this->altPalettes) {
+        SDL_DestroyPalette(palette);
+    }
+    SDL_DestroySurface(this->spriteSheet);
 }
 
 AnimationType Character::processAttacks() {
