@@ -3,9 +3,6 @@
 from pathlib import Path
 import re
 
-from charset_normalizer import from_bytes
-
-
 def process(hex_bytes: bytes) -> bytes:
     current_index: int = 0
     finished: bool = False
