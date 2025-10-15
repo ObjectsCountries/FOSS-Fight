@@ -152,7 +152,7 @@ Then, animation `00 00` (idle) is described, consisting of 4 sprites. The first 
 
 `00 01` begins to describe the sprite's hurtboxes, with the `00 01` afterward indicating that there is one hurtbox. This hurtbox's coordinates are detailed, then the same is done for the throw/push/ground collision box. The `00 00` afterward indicates the end of box description.
 
-`FF BF` indicates that this frame copies from another frame. `BF` in binary is `10111111`, meaning that this sprite copies everything but the sprite sheet location. `00 00` indicates that it will take from the idle animation, and the next `00 00` indicates that it will take from the first sprite. The sprite sheet location is then explicitly described. The third frame takes the same action, but describes a different sprite sheet location.
+A length of `FF BF` indicates that this frame copies from another frame. `BF` in binary is `10111111`, meaning that this sprite copies everything but the sprite sheet location. `00 00` indicates that it will take from the idle animation, and the next `00 00` indicates that it will take from the first sprite. The sprite sheet location is then explicitly described. The third frame takes the same action, but describes a different sprite sheet location.
 
 Finally, `FF FF 00 00 00 01` means to make an exact copy of the second sprite of the idle animation, including the sprite sheet location.
 
