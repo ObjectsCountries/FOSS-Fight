@@ -99,7 +99,7 @@ For each sprite, the first pair of bytes is how many frames (1/60 of a second) t
 |:-------:|:----------------------------------------|
 | `00 00` | Null Terminator                         |
 | `00 01` | Hurtbox                                 |
-| `00 02` | Grab and Command Grab Box               |
+| `00 02` | Command Grab Box                        |
 | `00 03` | Throwbox, Push Box and Ground Collision |
 | `00 04` | Proximity Guard Box                     |
 | `01 00` | Non-Cancelable Hitbox                   |
@@ -113,7 +113,7 @@ If a sprite's length begins with `FF`, that means that it is copying another spr
 2. Sprite Sheet Location
 3. Offset
 4. Hurtboxes
-5. Grab and Command Grab Boxes
+5. Command Grab Boxes
 6. Throwboxes, Push Boxes and Ground Collision Boxes
 7. Proximity Guard Boxes
 8. Hitboxes
@@ -156,6 +156,4 @@ A length of `FF BF` indicates that this frame copies from another frame. `BF` in
 
 Finally, `FF FF 00 00 00 01` means to make an exact copy of the second sprite of the idle animation, including the sprite sheet location.
 
-## To Do
-
-* Add horizontal walls
+After this, the walking forward animation is described.

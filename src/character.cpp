@@ -122,7 +122,7 @@ CopyInformation::CopyInformation(unsigned short type, unsigned short index, uint
     this->copySpriteSheetLocation = copyInfo & (1 << 6);
     this->copyOffset = copyInfo & (1 << 5);
     this->copyHurtboxes = copyInfo & (1 << 4);
-    this->copyGrabAndCommandGrabBoxes = copyInfo & (1 << 3);
+    this->copyCommandGrabBoxes = copyInfo & (1 << 3);
     this->copyThrowPushAndGroundCollisionBoxes = copyInfo & (1 << 2);
     this->copyProximityGuardBoxes = copyInfo & (1 << 1);
     this->copyHitboxes = copyInfo & (1 << 0);
@@ -144,7 +144,7 @@ CopyInformation::CopyInformation(unsigned short type, unsigned short index, uint
     if (this->copyHurtboxes) {
         ss << "Hurtboxes" << std::endl;
     }
-    if (this->copyGrabAndCommandGrabBoxes) {
+    if (this->copyCommandGrabBoxes) {
         ss << "Grab and Command Grab Boxes" << std::endl;
     }
     if (this->copyThrowPushAndGroundCollisionBoxes) {
@@ -171,7 +171,7 @@ bool boxTypeToColor(SDL_Renderer*& renderer, const BoxType boxType, const bool t
             return true;
         case HURTBOX:
             return SDL_SetRenderDrawColor(renderer, 0x00U, 0x00U, 0xFFU, alpha); // blue
-        case GRAB_COMMAND_GRAB:
+        case COMMAND_GRAB:
             return SDL_SetRenderDrawColor(renderer, 0xFFU, 0xA5U, 0x00U, alpha); // orange
         case THROW_PUSH_GROUND_COLLISION:
             return SDL_SetRenderDrawColor(renderer, 0x00U, 0xFFU, 0x00U, alpha); // green
@@ -328,7 +328,7 @@ Sprite::Sprite(const Sprite& reference,
         }
     }
     if (!copy.copyHurtboxes
-        || !copy.copyGrabAndCommandGrabBoxes
+        || !copy.copyCommandGrabBoxes
         || !copy.copyThrowPushAndGroundCollisionBoxes
         || !copy.copyProximityGuardBoxes
         || !copy.copyHitboxes) {
@@ -371,8 +371,8 @@ Sprite::Sprite(const Sprite& reference,
                 case HURTBOX:
                     mustCopy = copy.copyHurtboxes;
                     break;
-                case GRAB_COMMAND_GRAB:
-                    mustCopy = copy.copyGrabAndCommandGrabBoxes;
+                case COMMAND_GRAB:
+                    mustCopy = copy.copyCommandGrabBoxes;
                     break;
                 case THROW_PUSH_GROUND_COLLISION:
                     mustCopy = copy.copyThrowPushAndGroundCollisionBoxes;

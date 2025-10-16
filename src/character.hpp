@@ -97,9 +97,9 @@ public:
  * The different types of boxes in a character's data.
  */
 enum BoxType : unsigned short {
-    NULL_TERMINATOR = 0x0000U, /**< Indicates the end of box definition. Not necessary when copying from a previous frame and explicitly defining boxes. */
+    NULL_TERMINATOR = 0x0000U, /**< Indicates the end of box definition. */
     HURTBOX = 0x0001U, /**< Where the character can be hit by attacks. */
-    GRAB_COMMAND_GRAB = 0x0002U, /**< Where a character grabs the opponent, whether through a regular grab or a command grab. */
+    COMMAND_GRAB = 0x0002U, /**< Where a character grabs the opponent with a command grab. */
     THROW_PUSH_GROUND_COLLISION = 0x0003U, /**< Where a character can be thrown or pushed, as well as ground collision detection. */
     PROXIMITY_GUARD = 0x0004U, /**< If a character is holding back or down-back while overlapping with this kind of box, they are forced to enter the blocking animation. */
     NON_CANCELABLE_HITBOX = 0x0100U, /**< An attack that cannot be canceled into special moves or supers. */
@@ -257,7 +257,7 @@ public:
     bool copySpriteSheetLocation; /**< Whether to copy the frame's sprite sheet location or define it explicitly. */
     bool copyOffset; /**< Whether to copy the frame's offset or define it explicitly. */
     bool copyHurtboxes; /**< Whether to copy the frame's hurtboxes or define them explicitly. */
-    bool copyGrabAndCommandGrabBoxes; /**< Whether to copy the frame's grab and command grab boxes or define them explicitly. */
+    bool copyCommandGrabBoxes; /**< Whether to copy the frame's command grabi boxes or define them explicitly. */
     bool copyThrowPushAndGroundCollisionBoxes; /**< Whether to copy the frame's throw/push/ground collision boxes or define them explicitly. */
     bool copyProximityGuardBoxes; /**< Whether to copy the frame's proximity guard boxes or define them explicitly. */
     bool copyHitboxes; /**< Whether to copy the frame's hitboxes or define them explicitly. */
@@ -408,7 +408,6 @@ public:
     /**
      * Renders the character onto the screen.
      * @param renderer The renderer to render on.
-     * @exception DataException Throws a <c>DataException<unsigned char></c> when unable to render the ground.
      */
     void render(SDL_Renderer*& renderer);
 };

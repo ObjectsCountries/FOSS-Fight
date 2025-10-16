@@ -84,7 +84,7 @@ int main() {
 
     const char* name = "Debuggy";
 
-    const SDL_FRect* ground = new SDL_FRect(0, height - groundLength, width, groundLength + 1000);
+    const SDL_FRect* ground = new SDL_FRect(-1000, height - groundLength, width + 2000, groundLength + 1000);
 
     Character* debuggy = nullptr;
     try {
