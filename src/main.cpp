@@ -9,18 +9,60 @@
 
 #define DEBUG_CONTROLLER false
 
-#define CHAR_NAME Debuggy
-
 #if DEBUG_CONTROLLER
-#define CHAR_CONSTRUCT(name, nameLiteral) \
-        name = new Character(#nameLiteral, renderer, \
-        &controller, \
-        ground);
+#define CHAR_CONSTRUCT(name) \
+    Character* name = nullptr; \
+    try { \
+        name = new Character(#name, renderer, &controller, ground); \
+    } catch (const DataException<boxConstructionError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Box Construction Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<boxRenderError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<headerError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Header Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<frameConstructionError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<frameRenderError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<dataReadingError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Data Reading Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<paletteReadingError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    }
 #else
-#define CHAR_CONSTRUCT(name,  nameLiteral) \
-        name = new Character(#nameLiteral, renderer, \
-        &kip, \
-        ground);
+#define CHAR_CONSTRUCT(name) \
+    Character* name = nullptr; \
+    try { \
+        name = new Character(#name, renderer, &kip, ground); \
+    } catch (const DataException<boxConstructionError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Box Construction Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<boxRenderError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<headerError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Header Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<frameConstructionError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<frameRenderError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<dataReadingError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Data Reading Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    } catch (const DataException<paletteReadingError>& e) { \
+        std::cerr << "ERROR constructing " << #name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl; \
+        return 1; \
+    }
 #endif
 
 constexpr int height = 720;
@@ -98,32 +140,7 @@ int main() {
 
     const SDL_FRect* ground = new SDL_FRect(-1000, height - groundLength, width + 2000, groundLength + 1000);
 
-    Character* CHAR_NAME = nullptr;
-    try {
-CHAR_CONSTRUCT(CHAR_NAME, Debuggy)
-    } catch (const DataException<boxConstructionError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<boxRenderError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<headerError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Header Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<frameConstructionError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<frameRenderError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<dataReadingError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    } catch (const DataException<paletteReadingError>& e) {
-        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
-        return 1;
-    }
-
+CHAR_CONSTRUCT(Debuggy)
 
     while (running) {
         SDL_Event event;
@@ -142,8 +159,8 @@ CHAR_CONSTRUCT(CHAR_NAME, Debuggy)
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    CHAR_NAME->controller->updateInput();
-                    CHAR_NAME->controller->setButtons();
+                    Debuggy->controller->updateInput();
+                    Debuggy->controller->setButtons();
                     break;
 #endif
                 default:
@@ -152,7 +169,7 @@ CHAR_CONSTRUCT(CHAR_NAME, Debuggy)
         }
         SDL_RenderClear(renderer);
         try {
-            CHAR_NAME->render(renderer);
+            Debuggy->render(renderer);
         } catch (const char* e) {
             std::cerr << "ERROR rendering: " << e << std::endl;
             return 1;

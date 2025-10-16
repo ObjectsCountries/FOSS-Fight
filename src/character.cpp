@@ -438,16 +438,24 @@ void Sprite::render(SDL_Renderer*& renderer, const SDL_FRect* location) const {
 
 const SDL_FRect* Character::ground;
 
+#define GET_SPRITES(name) \
+    extern const unsigned char _binary_data_characters_##name##_png_start[]; \
+    extern const unsigned char _binary_data_characters_##name##_png_end[]; \
+    sprites = SDL_IOFromConstMem(_binary_data_characters_##name##_png_start, _binary_data_characters_##name##_png_end - _binary_data_characters_##name##_png_start); \
+    extern const unsigned char _binary_data_characters_##name##_ff_start[]; \
+    extern const unsigned char _binary_data_characters_##name##_ff_end[]; \
+    ffFile = SDL_IOFromConstMem(_binary_data_characters_##name##_ff_start, _binary_data_characters_##name##_ff_end - _binary_data_characters_##name##_ff_start);
+
+
 Character::Character(const char* name, SDL_Renderer*& renderer, BaseCommandInputParser* controller, const SDL_FRect*& groundBox, const unsigned short paletteIndex) :
     name{name}, inputs{InputHistory()}, controller{controller} {
     Character::ground = groundBox;
     unsigned short data;
-    extern const unsigned char _binary____data_characters_Debuggy_ff_start[];
-    extern const unsigned char _binary____data_characters_Debuggy_ff_end[];
-    SDL_IOStream* sprites = SDL_IOFromFile(
-    (std::string(SDL_GetBasePath()) + "../data/characters/" + this->name +
-     ".png").c_str(), "rb");
-    SDL_IOStream* ffFile = SDL_IOFromConstMem(_binary____data_characters_Debuggy_ff_start, _binary____data_characters_Debuggy_ff_end - _binary____data_characters_Debuggy_ff_start);
+    SDL_IOStream* sprites = nullptr;
+    SDL_IOStream* ffFile = nullptr;
+    if (name == std::string("Debuggy")) {
+GET_SPRITES(Debuggy)
+    }
     if (!SDL_ReadU16BE(ffFile, &data)) {
         const std::string error(SDL_GetError());
         throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while reading header", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));

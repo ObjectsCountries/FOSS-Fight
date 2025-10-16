@@ -10,34 +10,34 @@ file(GLOB foss-fight_SRC
      "src/*.cpp"
 )
 
-file(GLOB foss-fight_ASSETS
-    "data/characters/*.png"
-)
+add_executable("foss-fight" "${foss-fight_SRC}")
 
-foreach(spriteSheet ${foss-fight_ASSETS})
+set(foss-fight_ROSTER "Debuggy")
+
+foreach(character ${foss-fight_ROSTER})
     add_custom_command(
-            OUTPUT ${spriteSheet}.o
-            COMMAND ld -r -b binary -o ${spriteSheet}.o ../${spriteSheet}
-            DEPENDS "../${spriteSheet}")
+        TARGET foss-fight
+        PRE_LINK
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMAND ld -r -b binary -o "${CMAKE_CURRENT_BINARY_DIR}/${character}_sprite_sheet.o" "data/characters/${character}.png"
+    )
+    add_custom_command(
+        TARGET foss-fight
+        PRE_LINK
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMAND ld -r -b binary -o "${CMAKE_CURRENT_BINARY_DIR}/${character}_data.o" "data/characters/${character}.ff"
+    )
 endforeach()
 
-file(GLOB foss-fight_DATA
-        "data/characters/*.ff"
+file(GLOB foss-fight_ASSETS_OBJ
+    "${CMAKE_CURRENT_BINARY_DIR}/*_sprite_sheet.o"
 )
 
-foreach(data ${foss-fight_DATA})
-    add_custom_command(
-            OUTPUT ${data}.o
-            COMMAND ld -r -b binary -o ${data}.o ../${data}
-            DEPENDS "../${data}")
-endforeach()
+file(GLOB foss-fight_DATA_OBJ
+    "${CMAKE_CURRENT_BINARY_DIR}/*_data.o"
+)
 
-add_custom_command(
-        OUTPUT debuggy_data.o
-        COMMAND ld -r -b binary -o debuggy_data.o ../data/characters/Debuggy.ff
-        DEPENDS "../data/characters/Debuggy.ff")
-
-add_executable(foss-fight ${foss-fight_SRC} debuggy_data.o)
+target_sources(foss-fight PRIVATE "${foss-fight_ASSETS_OBJ}" "${foss-fight_DATA_OBJ}")
 
 set_property(TARGET "foss-fight" PROPERTY CXX_STANDARD 26)
 set_property(TARGET "foss-fight" PROPERTY CMAKE_CXX_STANDARD_REQUIRED ON)
