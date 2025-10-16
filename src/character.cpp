@@ -442,12 +442,12 @@ Character::Character(const char* name, SDL_Renderer*& renderer, BaseCommandInput
     name{name}, inputs{InputHistory()}, controller{controller} {
     Character::ground = groundBox;
     unsigned short data;
+    extern const unsigned char _binary____data_characters_Debuggy_ff_start[];
+    extern const unsigned char _binary____data_characters_Debuggy_ff_end[];
     SDL_IOStream* sprites = SDL_IOFromFile(
     (std::string(SDL_GetBasePath()) + "../data/characters/" + this->name +
      ".png").c_str(), "rb");
-    SDL_IOStream* ffFile = SDL_IOFromFile(
-    (std::string(SDL_GetBasePath()) + "../data/characters/" + this->name +
-     ".ff").c_str(), "rb");
+    SDL_IOStream* ffFile = SDL_IOFromConstMem(_binary____data_characters_Debuggy_ff_start, _binary____data_characters_Debuggy_ff_end - _binary____data_characters_Debuggy_ff_start);
     if (!SDL_ReadU16BE(ffFile, &data)) {
         const std::string error(SDL_GetError());
         throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while reading header", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(ffFile));

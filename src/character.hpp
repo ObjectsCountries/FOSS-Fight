@@ -352,7 +352,6 @@ public:
 class Character {
 private:
     static const SDL_FRect* ground; /**< The ground that the characters stand on. */
-    std::string name; /**< The character's name. */
     unsigned short maxHealth = 500U; /**< The character's maximum health. */
     unsigned short currentHealth = 500U; /**< The character's current health. */
     SDL_Surface* spriteSheet; /**< The sprite sheet containing all the character's sprites. */
@@ -379,6 +378,7 @@ private:
     std::vector<SDL_Palette*> altPalettes; /**< The alternative color schemes of the character. */
     Direction jumpArc = UP; /**< The direction in which this character is jumping, either @c Direction::UP_BACK, @c Direction::UP or @c Direction::UP_FORWARD . */
 public:
+    std::string name; /**< The character's name. */
     InputHistory inputs; /**< The input history of the character. */
     BaseCommandInputParser* controller; /**< The command input parser of the character. */
     /**

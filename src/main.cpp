@@ -9,6 +9,20 @@
 
 #define DEBUG_CONTROLLER false
 
+#define CHAR_NAME Debuggy
+
+#if DEBUG_CONTROLLER
+#define CHAR_CONSTRUCT(name, nameLiteral) \
+        name = new Character(#nameLiteral, renderer, \
+        &controller, \
+        ground);
+#else
+#define CHAR_CONSTRUCT(name,  nameLiteral) \
+        name = new Character(#nameLiteral, renderer, \
+        &kip, \
+        ground);
+#endif
+
 constexpr int height = 720;
 constexpr int width = height * 16 / 9;
 constexpr int groundLength = 150;
@@ -82,39 +96,31 @@ int main() {
         SDL_SCANCODE_U, SDL_SCANCODE_I, SDL_SCANCODE_J, SDL_SCANCODE_K);
 #endif
 
-    const char* name = "Debuggy";
-
     const SDL_FRect* ground = new SDL_FRect(-1000, height - groundLength, width + 2000, groundLength + 1000);
 
-    Character* debuggy = nullptr;
+    Character* CHAR_NAME = nullptr;
     try {
-        debuggy = new Character(name, renderer,
-#if DEBUG_CONTROLLER
-        &controller,
-#else
-            &kip,
-#endif
-            ground);
+CHAR_CONSTRUCT(CHAR_NAME, Debuggy)
     } catch (const DataException<boxConstructionError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Box Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<boxRenderError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Box Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<headerError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Header Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Header Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<frameConstructionError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Frame Construction Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<frameRenderError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Frame Rendering Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<dataReadingError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Data Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     } catch (const DataException<paletteReadingError>& e) {
-        std::cerr << "ERROR constructing " << name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
+        std::cerr << "ERROR constructing " << CHAR_NAME->name << "! (Palette Reading Error)" << std::endl << e.what() << std::endl;
         return 1;
     }
 
@@ -136,8 +142,8 @@ int main() {
 #else
                 case SDL_EVENT_KEY_DOWN:
                 case SDL_EVENT_KEY_UP:
-                    debuggy->controller->updateInput();
-                    debuggy->controller->setButtons();
+                    CHAR_NAME->controller->updateInput();
+                    CHAR_NAME->controller->setButtons();
                     break;
 #endif
                 default:
@@ -146,7 +152,7 @@ int main() {
         }
         SDL_RenderClear(renderer);
         try {
-            debuggy->render(renderer);
+            CHAR_NAME->render(renderer);
         } catch (const char* e) {
             std::cerr << "ERROR rendering: " << e << std::endl;
             return 1;
