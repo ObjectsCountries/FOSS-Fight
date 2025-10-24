@@ -70,6 +70,7 @@ def convert(data: Path) -> str:
     formatted = "$"
     for line in result.split("\n"):
         formatted += f"\\texttt{{{line}}}\\\\"
+    formatted = formatted[:-2]
     formatted += "$"
     return formatted
 
