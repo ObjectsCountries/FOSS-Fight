@@ -67,11 +67,10 @@ def convert(data: Path) -> str:
     result = re.sub("(([0-9A-F]{2} ){16})", "\\1\\n", result)
     result = result.replace(" \n", "\n")
     result = result.strip()
-    formatted = "$\n"
+    formatted = "$"
     for line in result.split("\n"):
-        formatted += f"\\texttt{{{line}}}\\\n"
-    formatted = formatted[:-2]
-    formatted += "\n$"
+        formatted += f"\\texttt{{{line}}}\\\\"
+    formatted += "$"
     return formatted
 
 def main() -> None:
