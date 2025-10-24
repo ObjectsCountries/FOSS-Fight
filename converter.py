@@ -3,7 +3,7 @@
 from pathlib import Path
 import re
 
-def process(hex_bytes: bytes) -> bytes:
+def process(hex_bytes: bytes) -> str:
     current_index: int = 0
     finished: bool = False
     passed_header: bool = False
@@ -59,19 +59,20 @@ def process(hex_bytes: bytes) -> bytes:
                         current_box: int = int.from_bytes(hex_bytes[current_index:current_index + 2], "big")
                         current_index += 2
             finished = True
-    return hex_bytes[:current_index]
+    return hex_bytes[:current_index].hex().upper()
 
 def convert(data: Path) -> str:
-    result: str = process(data.read_bytes()).hex().upper()
+    result: str = process(data.read_bytes())
     result = re.sub("([0-9A-F]{2})", "\\1 ", result)
     result = re.sub("(([0-9A-F]{2} ){16})", "\\1\\n", result)
     result = result.replace(" \n", "\n")
     result = result.strip()
-    result2 = "$$\n"
+    formatted = "$\n"
     for line in result.split("\n"):
-        result2 += f"\\texttt{{{line}}}\\\n"
-    result2 += "$$"
-    return result2
+        formatted += f"\\texttt{{{line}}}\\\n"
+    formatted = formatted[:-2]
+    formatted += "\n$"
+    return formatted
 
 def main() -> None:
     print(convert(Path("data/characters/Debuggy.ff")))
