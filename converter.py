@@ -66,7 +66,12 @@ def convert(data: Path) -> str:
     result = re.sub("([0-9A-F]{2})", "\\1 ", result)
     result = re.sub("(([0-9A-F]{2} ){16})", "\\1\\n", result)
     result = result.replace(" \n", "\n")
-    return result
+    result = result.strip()
+    result2 = "$$\n"
+    for line in result.split("\n"):
+        result2 += f"\\texttt{{{line}}}\\\n"
+    result2 += "$$"
+    return result2
 
 def main() -> None:
     print(convert(Path("data/characters/Debuggy.ff")))

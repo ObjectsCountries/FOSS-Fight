@@ -131,16 +131,16 @@ If a box's coordinates are `FF FF`, that means that it covers the entire asset a
 1. Find `/(([0-9A-F]{2} ){16})/`, replace with `/\1\n/`.
 2. Find `/ $/`, replace with `//` (delete).
 
-```hexdump
-F0 55 00 03 00 01 00 00 00 FF 00 00 00 00 FF 40
-80 00 00 40 80 00 00 C0 40 00 00 41 00 00 00 C1
-00 00 00 C1 A0 00 00 3F 80 00 00 00 00 00 04 00
-05 00 09 00 08 00 17 00 2A 00 00 00 00 00 01 00
-01 00 00 00 00 00 1A 00 2A 00 03 00 01 00 00 00
-20 00 1A 00 0A 00 00 FF BF 00 00 00 00 00 2D 00
-09 00 19 00 29 FF BF 00 00 00 00 00 55 00 09 00
-1A 00 2A FF FF 00 00 00 01
-```
+$$
+\texttt{F0 55 00 03 00 01 00 00 00 FF 00 00 00 00 FF 40}\\
+\texttt{80 00 00 40 80 00 00 C0 40 00 00 41 00 00 00 C1}\\
+\texttt{00 00 00 C1 A0 00 00 3F 80 00 00 00 00 00 04 00}\\
+\texttt{05 00 09 00 08 00 17 00 2A 00 00 00 00 00 01 00}\\
+\texttt{01 00 00 00 00 00 1A 00 2A 00 03 00 01 00 00 00}\\
+\texttt{20 00 1A 00 0A 00 00 FF BF 00 00 00 00 00 2D 00}\\
+\texttt{09 00 19 00 29 FF BF 00 00 00 00 00 55 00 09 00}\\
+\texttt{1A 00 2A FF FF 00 00 00 01}
+$$
 
 The file begins with the header of `F0 55`.
 
@@ -156,4 +156,4 @@ A length of `FF BF` indicates that this frame copies from another frame. `BF` in
 
 Finally, `FF FF 00 00 00 01` means to make an exact copy of the second sprite of the idle animation, including the sprite sheet location.
 
-After this, the walking forward animation is described.
+After this, the walking forward animation is described (not shown).
