@@ -43,6 +43,7 @@ Then, the character sprite animations are described. Each animation begins with 
 | `01 01` | Standing Heavy Punch      |
 | `01 02` | Standing Light Kick       |
 | `01 03` | Standing Heavy Kick       |
+| `01 04` | Forward Light Kick        |
 | `01 10` | Crouching Light Punch     |
 | `01 11` | Crouching Heavy Punch     |
 | `01 12` | Crouching Light Kick      |
@@ -51,40 +52,12 @@ Then, the character sprite animations are described. Each animation begins with 
 | `01 21` | Jumping Heavy Punch       |
 | `01 22` | Jumping Light Kick        |
 | `01 23` | Jumping Heavy Kick        |
-| `01 04` | Forward Light Kick        |
+| `01 XX` | Other Command Normals     |
 | `01 80` | Forward Throw             |
 | `01 81` | Backwards Throw           |
-| `02 00` | Special 1                 |
-| `02 01` | Special 2                 |
-| `02 02` | Special 3                 |
-| `02 03` | Special 4                 |
-| `02 04` | Special 5                 |
-| `02 05` | Special 6                 |
-| `02 06` | Special 7                 |
-| `02 07` | Special 8                 |
-| `02 08` | Special 9                 |
-| `02 09` | Special 10                |
-| `03 00` | Super                     |
-| `04 00` | Misc. Asset 1             |
-| `04 01` | Misc. Asset 2             |
-| `04 02` | Misc. Asset 3             |
-| `04 03` | Misc. Asset 4             |
-| `04 04` | Misc. Asset 5             |
-| `04 05` | Misc. Asset 6             |
-| `04 06` | Misc. Asset 7             |
-| `04 07` | Misc. Asset 8             |
-| `04 08` | Misc. Asset 9             |
-| `04 09` | Misc. Asset 10            |
-| `05 00` | Character Meter Asset 1   |
-| `05 01` | Character Meter Asset 2   |
-| `05 02` | Character Meter Asset 3   |
-| `05 03` | Character Meter Asset 4   |
-| `05 04` | Character Meter Asset 5   |
-| `05 05` | Character Meter Asset 6   |
-| `05 06` | Character Meter Asset 7   |
-| `05 07` | Character Meter Asset 8   |
-| `05 08` | Character Meter Asset 9   |
-| `05 09` | Character Meter Asset 10  |
+| `02 XX` | Special Moves/Supers      |
+| `03 XX` | Character Meter Assets    |
+| `04 XX` | Miscellaneous Assets      |
 | `FF 00` | Character Selection Image |
 | `FF 01` | Post-Game Win Image       |
 | `FF 02` | Post-Game Loss Image      |
@@ -102,10 +75,20 @@ For each sprite, the first pair of bytes is how many frames (1/60 of a second) t
 | `00 02` | Command Grab Box                        |
 | `00 03` | Throwbox, Push Box and Ground Collision |
 | `00 04` | Proximity Guard Box                     |
-| `01 00` | Non-Cancelable Hitbox                   |
-| `01 01` | Special-Cancelable Hitbox               |
-| `01 02` | Super-Cancelable Hitbox                 |
-| `01 03` | Special- and Super-Cancelable Hitbox    |
+| `01 XX` | Hitbox                                  |
+
+The `XX` byte of a hitbox describes its properties. Each bit describes the following (MSB first):
+
+1. Can be blocked high
+2. Can be blocked low
+3. j
+4. j
+5. `00` for mild knockback (1 sprite of reel-back), `01` for medium (2 sprites), `10` for heavy (3 sprites), and `11` for a knockdown
+6. See above
+7. j
+8. j
+
+Before the coordinates of a hitbox, three numbers are detailed: the hit stun in frames, the block stun in frames, the pushback on hit in units, and the pushback on block in units. Note that the hit stun and pushback on hit are not used if the hitbox knocks down.
 
 If a sprite's length begins with `FF`, that means that it is copying another sprite's data. The byte after `FF` determines which information to copy (most significant bit first). In order, the bits are:
 
@@ -152,3 +135,41 @@ A length of `FF BF` indicates that this frame copies from another frame. `BF` in
 Finally, `FF FF 00 00 00 01` means to make an exact copy of the second sprite of the idle animation, including the sprite sheet location.
 
 After this, the walking forward animation is described (not shown).
+
+There must be a gap of at least one frame between hitboxes for multi-hits/sour spots.
+
+## Special Moves
+
+Immediately before the hitboxes of a special move, its input and buttons are described with one byte.
+
+|  Bits  | Command Input                           |
+|:------:|:----------------------------------------|
+| `0000` | Quarter Circle Forward (236)            |
+| `0001` | Quarter Circle Back (214)               |
+| `0010` | Dragon Punch (623)                      |
+| `0011` | Half Circle Forward (41236)             |
+| `0100` | Half Circle Back (63214)                |
+| `0101` | Full Circle (360)                       |
+| `0110` | Horizontal Charge (\[4]6)               |
+| `0111` | Vertical Charge (\[2]8)                 |
+| `1000` | Down-Down (22)                          |
+| `1001` | Double Quarter Circle Forward (236236)  |
+| `1010` | Double Quarter Circle Back (214214)     |
+| `1011` | Double Half Circle Forward (4123641236) |
+| `1100` | Double Half Circle Back (6321463214)    |
+| `1101` | Double Horizontal Charge (\[4]646)      |
+| `1110` | Double Diagonal Charge (\[1]319)        |
+| `1111` | Double Full Circle (720)                |
+
+| Bits  | Command Input     |
+|:-----:|:------------------|
+| `000` | Light Punch (LP)  |
+| `001` | Heavy Punch (HP)  |
+| `010` | Either Punch (P)  |
+| `011` | Both Punches (PP) |
+| `100` | Light Kick (LK)   |
+| `101` | Heavy Kick (HK)   |
+| `110` | Either Kick (K)   |
+| `111` | Both Kicks (KK)   |
+
+The last bit is 0 if the move is a special move, and 1 if it's a Super.
