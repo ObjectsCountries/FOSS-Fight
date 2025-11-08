@@ -18,49 +18,51 @@ Then, floating point numbers are detailed that represent stats, in this order:
 
 Then, the character sprite animations are described. Each animation begins with two bytes describing the type of animation it is.
 
-| Number  | Data                      |
-|:-------:|:--------------------------|
-| `00 00` | Idle                      |
-| `00 01` | Walking Forward           |
-| `00 02` | Walking Backwards         |
-| `00 03` | Crouch Transition         |
-| `00 04` | Crouching                 |
-| `00 05` | Stand Blocking            |
-| `00 06` | Crouch Blocking           |
-| `00 07` | Pre-Jump                  |
-| `00 08` | Jumping Forwards          |
-| `00 09` | Jumping Neutral           |
-| `00 0A` | Jumping Backwards         |
-| `00 0B` | Stand Getting Hit         |
-| `00 0C` | Crouch Getting Hit        |
-| `00 0D` | Air Getting Hit           |
-| `00 0E` | Air Reset                 |
-| `00 0F` | Knockdown                 |
-| `00 10` | Getting Up                |
-| `00 11` | Victory Animation         |
-| `00 12` | Time Over Loss Animation  |
-| `01 00` | Standing Light Punch      |
-| `01 01` | Standing Heavy Punch      |
-| `01 02` | Standing Light Kick       |
-| `01 03` | Standing Heavy Kick       |
-| `01 04` | Forward Light Kick        |
-| `01 10` | Crouching Light Punch     |
-| `01 11` | Crouching Heavy Punch     |
-| `01 12` | Crouching Light Kick      |
-| `01 13` | Crouching Heavy Kick      |
-| `01 20` | Jumping Light Punch       |
-| `01 21` | Jumping Heavy Punch       |
-| `01 22` | Jumping Light Kick        |
-| `01 23` | Jumping Heavy Kick        |
-| `01 XX` | Other Command Normals     |
-| `01 80` | Forward Throw             |
-| `01 81` | Backwards Throw           |
-| `02 XX` | Special Moves/Supers      |
-| `03 XX` | Character Meter Assets    |
-| `04 XX` | Miscellaneous Assets      |
-| `FF 00` | Character Selection Image |
-| `FF 01` | Post-Game Win Image       |
-| `FF 02` | Post-Game Loss Image      |
+| Number  | Data                            |
+|:-------:|:--------------------------------|
+| `00 00` | Idle                            |
+| `00 01` | Walking Forward                 |
+| `00 02` | Walking Backward                |
+| `00 03` | Crouch Transition               |
+| `00 04` | Crouching                       |
+| `00 05` | Stand Blocking                  |
+| `00 06` | Crouch Blocking                 |
+| `00 07` | Pre-Jump                        |
+| `00 08` | Jumping Forwards                |
+| `00 09` | Jumping Neutral                 |
+| `00 0A` | Jumping Backwards               |
+| `00 0B` | Stand Getting Hit               |
+| `00 0C` | Crouch Getting Hit              |
+| `00 0D` | Air Getting Hit                 |
+| `00 0E` | Air Reset                       |
+| `00 0F` | Knockdown                       |
+| `00 10` | Getting Up                      |
+| `00 11` | Victory Animation               |
+| `00 12` | Time Over Loss Animation        |
+| `01 00` | Standing Light Punch            |
+| `01 01` | Standing Heavy Punch            |
+| `01 02` | Standing Light Kick             |
+| `01 03` | Standing Heavy Kick             |
+| `01 04` | Forward Light Kick              |
+| `01 10` | Crouching Light Punch           |
+| `01 11` | Crouching Heavy Punch           |
+| `01 12` | Crouching Light Kick            |
+| `01 13` | Crouching Heavy Kick            |
+| `01 20` | Jumping Light Punch             |
+| `01 21` | Jumping Heavy Punch             |
+| `01 22` | Jumping Light Kick              |
+| `01 23` | Jumping Heavy Kick              |
+| `01 XX` | Other Command Normals           |
+| `01 80` | Forward Throw                   |
+| `01 81` | Backwards Throw                 |
+| `02 XX` | Special Move                    |
+| `03 00` | Super                           |
+| `F0 XX` | Character-Specific Meter Assets |
+| `F1 XX` | Miscellaneous Assets            |
+| `FF 00` | Character Selection Image       |
+| `FF 01` | Post-Game Win Image             |
+| `FF 02` | Post-Game Loss Image            |
+| `FF FF` | Nothing                         |
 
 For Gnu, these describe his Footsies mode sprites. If a pair of bytes begins with `10`, `11`, etc., these are his Gatling mode sprites.
 
@@ -81,14 +83,14 @@ The `XX` byte of a hitbox describes its properties. Each bit describes the follo
 
 1. Can be blocked high
 2. Can be blocked low
-3. j
-4. j
+3. Special-Cancelable
+4. Super-Cancelable
 5. `00` for mild knockback (1 sprite of reel-back), `01` for medium (2 sprites), `10` for heavy (3 sprites), and `11` for a knockdown
 6. See above
-7. j
-8. j
+7. Soft knockdown (0) or hard knockdown (1), ignored if no knockdown
+8. Resets when hitting airborne opponent
 
-Before the coordinates of a hitbox, three numbers are detailed: the hit stun in frames, the block stun in frames, the pushback on hit in units, and the pushback on block in units. Note that the hit stun and pushback on hit are not used if the hitbox knocks down.
+After the coordinates of a hitbox, four numbers are detailed: the hit stun in frames (unsigned), the block stun in frames (unsigned), the pushback on hit in units (signed), and the pushback on block in units (signed). Note that the hit stun and pushback on hit are instead read as the x-velocity and y-velocity of the knockback if the hitbox knocks down.
 
 If a sprite's length begins with `FF`, that means that it is copying another sprite's data. The byte after `FF` determines which information to copy (most significant bit first). In order, the bits are:
 
@@ -105,7 +107,7 @@ A value of 1 means to copy this information, and 0 means to define it explicitly
 
 The first two bytes afterward represent the animation type to copy from, and the next two bytes are the sprite index (starting from 0). 
 
-If a box's coordinates are `FF FF`, that means that it covers the entire asset as one whole rectangle.
+**(TO BE IMPLEMENTED)** If a box's coordinates are `FF FF`, that means that it covers the entire asset as one whole rectangle.
 
 ### Example
 
@@ -140,26 +142,26 @@ There must be a gap of at least one frame between hitboxes for multi-hits/sour s
 
 ## Special Moves
 
-Immediately before the hitboxes of a special move, its input and buttons are described with one byte.
+Immediately before the hitboxes of a special move or Super, its input and buttons are described with one byte.
 
 |  Bits  | Command Input                           |
 |:------:|:----------------------------------------|
 | `0000` | Quarter Circle Forward (236)            |
 | `0001` | Quarter Circle Back (214)               |
-| `0010` | Dragon Punch (623)                      |
-| `0011` | Half Circle Forward (41236)             |
-| `0100` | Half Circle Back (63214)                |
-| `0101` | Full Circle (360)                       |
-| `0110` | Horizontal Charge (\[4]6)               |
-| `0111` | Vertical Charge (\[2]8)                 |
-| `1000` | Down-Down (22)                          |
-| `1001` | Double Quarter Circle Forward (236236)  |
-| `1010` | Double Quarter Circle Back (214214)     |
-| `1011` | Double Half Circle Forward (4123641236) |
-| `1100` | Double Half Circle Back (6321463214)    |
+| `0010` | Half Circle Forward (41236)             |
+| `0011` | Half Circle Back (63214)                |
+| `0100` | Full Circle (360)                       |
+| `0101` | Horizontal Charge (\[4]6)               |
+| `0110` | Vertical Charge (\[2]8)                 |
+| `0111` | Dragon Punch (623)                      |
+| `1000` | Double Quarter Circle Forward (236236)  |
+| `1001` | Double Quarter Circle Back (214214)     |
+| `1010` | Double Half Circle Forward (4123641236) |
+| `1011` | Double Half Circle Back (6321463214)    |
+| `1100` | Double Full Circle (720)                |
 | `1101` | Double Horizontal Charge (\[4]646)      |
 | `1110` | Double Diagonal Charge (\[1]319)        |
-| `1111` | Double Full Circle (720)                |
+| `1111` | Half Circle Back, Then Forward (632146) |
 
 | Bits  | Command Input     |
 |:-----:|:------------------|
@@ -172,4 +174,4 @@ Immediately before the hitboxes of a special move, its input and buttons are des
 | `110` | Either Kick (K)   |
 | `111` | Both Kicks (KK)   |
 
-The last bit is 0 if the move is a special move, and 1 if it's a Super.
+The last bit is unused as of now.

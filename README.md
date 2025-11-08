@@ -27,7 +27,7 @@ Mascot of Linux. **Archetype**: Shoto
 
 ### Evil Tux
 
-Not a mascot, just an evil version of Tux. **Archetype**: Evil Shoto
+Not a mascot, just an evil version of Tux. **Archetype**: Glass Cannon
 
 **NOTES**: Evil Tux will not be on the select screen. To select him, pick Tux and hold the button that selected him for 1 second.
 
@@ -69,7 +69,7 @@ Mascot of Hyprland. **Archetype**: Mixup
 
 ### Wilber
 
-Mascot of GIMP. **Archetype**: Zoner
+Mascot of GIMP. **Archetype**: Charge
 
 * Square Boom (\[4]6P): Releases a spinning square projectile. 
 * Flash Flip (\[2]8K): Wilber flips in an arc. Invincible on startup, and is great for anti-airing.
@@ -165,4 +165,11 @@ Debug character for FOSS Fight. **Archetype**: Joke
 * fireball (236P): Throws a black sphere that hits once. Consumes 15% of the meter.
 * square kick or whatever i forgot what it was called (\[2]8K): A Flash Kick-like special that anti-airs and is invincible on startup. Consumes 35% of the meter.
 * let's go gambling (236K): Throws a random shape. Like Suzanne, these shapes can be controlled by hitting them. Consumes 10% of the meter.
-* **Super Art**: this is a super cool super art (236236P): Throws a bunch of shapes that bounce around.
+* **Super Art**: None
+
+## Potential Additions Later On
+
+* Pepper and Carrot (Zoner/Setplay/Puppet/Magic)
+* ThePrimeagen (High-Execution Stance Character, stances are parallel to Vim modes)
+* Beastie from FreeBSD (Fundies, fights with trident)
+* Gary (a.k.a. Green Guy) from [Green Guy Goes Grappling](https://lim95.com/gggg)

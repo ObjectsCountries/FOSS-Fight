@@ -102,10 +102,8 @@ enum BoxType : unsigned short {
     COMMAND_GRAB = 0x0002U, /**< Where a character grabs the opponent with a command grab. */
     THROW_PUSH_GROUND_COLLISION = 0x0003U, /**< Where a character can be thrown or pushed, as well as ground collision detection. */
     PROXIMITY_GUARD = 0x0004U, /**< If a character is holding back or down-back while overlapping with this kind of box, they are forced to enter the blocking animation. */
-    NON_CANCELABLE_HITBOX = 0x0100U, /**< An attack that cannot be canceled into special moves or supers. */
-    SPECIAL_CANCELABLE_HITBOX = 0x0101U, /**< An attack that can be canceled into special moves, but not supers. */
-    SUPER_CANCELABLE_HITBOX = 0x0102U, /**< An attack that can be canceled into supers, but not special moves. */
-    SPECIAL_SUPER_CANCELABLE_HITBOX = 0x0103U /**< An attack that can be canceled into special moves or supers. */
+    HITBOX_BEGIN = 0x0100U, /**< Begins the definition of hitboxes, or attacks. */
+    HITBOX_END = 0x01FFU, /**< Ends the definition of hitboxes, or attacks. */
 };
 
 /**
@@ -129,115 +127,32 @@ enum AnimationType : unsigned short {
     AIR_RESET = 0x000EU, /**< The character landing on their feet after getting hit in midair. */
     KNOCKDOWN = 0x000FU, /**< Getting knocked down. */
     GET_UP = 0x0010U, /**< Getting up. */
+    VICTORY = 0x0011U, /**< Animation that plays when the character wins a round. */
+    DEFEAT = 0x0012U, /**< Animation that plays when the character loses a round to a time-out. */
     STAND_LIGHT_PUNCH = 0x0100U, /**< Standing light punch (5LP). */
     STAND_HEAVY_PUNCH = 0x0101U, /**< Standing heavy punch (5HP). */
     STAND_LIGHT_KICK = 0x0102U, /**< Standing light kick (5LK). */
     STAND_HEAVY_KICK = 0x0103U, /**< Standing heavy kick (5HK). */
-    CROUCH_LIGHT_PUNCH = 0x0104U, /**< Crouching light punch (2LP). */
-    CROUCH_HEAVY_PUNCH = 0x0105U, /**< Crouching heavy punch (2HP), universal anti-air. */
-    CROUCH_LIGHT_KICK = 0x0106U, /**< Crouching light kick (2LK). */
-    CROUCH_HEAVY_KICK = 0x0107U, /**< Crouching heavy kick (2HK), aka sweep. */
-    JUMP_LIGHT_PUNCH = 0x0108U, /**< Jumping light punch (j.LP). */
-    JUMP_HEAVY_PUNCH = 0x0109U, /**< Jumping heavy punch (j.HP). */
-    JUMP_LIGHT_KICK = 0x010AU, /**< Jumping light kick (j.LK). */
-    JUMP_HEAVY_KICK = 0x010BU, /**< Jumping heavy kick (j.HK). */
-    FORWARD_LIGHT_KICK = 0x010CU, /**< Forward light kick (6LK), universal overhead. */
+    FORWARD_LIGHT_KICK = 0x0104U, /**< Forward light kick (6LK), universal overhead. */
+    CROUCH_LIGHT_PUNCH = 0x0110U, /**< Crouching light punch (2LP). */
+    CROUCH_HEAVY_PUNCH = 0x0111U, /**< Crouching heavy punch (2HP), universal anti-air. */
+    CROUCH_LIGHT_KICK = 0x0112U, /**< Crouching light kick (2LK). */
+    CROUCH_HEAVY_KICK = 0x0113U, /**< Crouching heavy kick (2HK), aka sweep. */
+    JUMP_LIGHT_PUNCH = 0x0120U, /**< Jumping light punch (j.LP). */
+    JUMP_HEAVY_PUNCH = 0x0121U, /**< Jumping heavy punch (j.HP). */
+    JUMP_LIGHT_KICK = 0x0122U, /**< Jumping light kick (j.LK). */
+    JUMP_HEAVY_KICK = 0x0123U, /**< Jumping heavy kick (j.HK). */
+    COMMAND_NORMALS_START = 0x0124U, /**< Begins the definition of other command normals. */
+    COMMAND_NORMALS_END = 0x017FU, /**< Ends the definition of other command normals. */
     FORWARD_THROW = 0x0180U, /**< Throwing the opponent forwards. */
     BACKWARD_THROW = 0x0181U, /**< Throwing the opponent backwards. */
-    SPECIAL_1 = 0x0200U, /**< First special move. */
-    SPECIAL_2 = 0x0201U, /**< Second special move. */
-    SPECIAL_3 = 0x0202U, /**< Third special move. */
-    SPECIAL_4 = 0x0203U, /**< Fourth special move. */
-    SPECIAL_5 = 0x0204U, /**< Fifth special move. */
-    SPECIAL_6 = 0x0205U, /**< Sixth special move. */
-    SPECIAL_7 = 0x0206U, /**< Seventh special move. */
-    SPECIAL_8 = 0x0207U, /**< Eighth special move. */
-    SPECIAL_9 = 0x0208U, /**< Nineth special move. */
-    SPECIAL_10 = 0x0209U, /**< Tenth special move. */
+    SPECIALS_START = 0x0200U, /**< Begins the definition of special moves. */
+    SPECIALS_END = 0x02FFU, /**< Ends the definition of special moves. */
     SUPER = 0x0300U, /**< The character's Super Art. */
-    MISC_ASSET_1 = 0x0400U, /**< First miscellaneous asset. */
-    MISC_ASSET_2 = 0x0401U, /**< Second miscellaneous asset. */
-    MISC_ASSET_3 = 0x0402U, /**< Third miscellaneous asset. */
-    MISC_ASSET_4 = 0x0403U, /**< Fourth miscellaneous asset. */
-    MISC_ASSET_5 = 0x0404U, /**< Fifth miscellaneous asset. */
-    MISC_ASSET_6 = 0x0405U, /**< Sixth miscellaneous asset. */
-    MISC_ASSET_7 = 0x0406U, /**< Seventh miscellaneous asset. */
-    MISC_ASSET_8 = 0x0407U, /**< Eighth miscellaneous asset. */
-    MISC_ASSET_9 = 0x0408U, /**< Nineth miscellaneous asset. */
-    MISC_ASSET_10 = 0x0409U, /**< Tenth miscellaneous asset. */
-    CHARACTER_METER_ASSET_1 = 0x0500U, /**< First character-specific meter asset. */
-    CHARACTER_METER_ASSET_2 = 0x0501U, /**< Second character-specific meter asset. */
-    CHARACTER_METER_ASSET_3 = 0x0502U, /**< Third character-specific meter asset. */
-    CHARACTER_METER_ASSET_4 = 0x0503U, /**< Fourth character-specific meter asset. */
-    CHARACTER_METER_ASSET_5 = 0x0504U, /**< Fifth character-specific meter asset. */
-    CHARACTER_METER_ASSET_6 = 0x0505U, /**< Sixth character-specific meter asset. */
-    CHARACTER_METER_ASSET_7 = 0x0506U, /**< Seventh character-specific meter asset. */
-    CHARACTER_METER_ASSET_8 = 0x0507U, /**< Eighth character-specific meter asset. */
-    CHARACTER_METER_ASSET_9 = 0x0508U, /**< Nineth character-specific meter asset. */
-    CHARACTER_METER_ASSET_10 = 0x0509U, /**< Tenth character-specific meter asset. */
-    ALT_STANCE_IDLE = 0x1000U, /**< Not doing anything (alt stance). */
-    ALT_STANCE_WALK_FORWARD = 0x1001U, /**< Walking forward (alt stance). */
-    ALT_STANCE_WALK_BACKWARD = 0x1002U, /**< Walking backward (alt stance). */
-    ALT_STANCE_CROUCH_TRANSITION = 0x1003U, /**< Transitioning from standing to crouching, or vice versa (alt stance). */
-    ALT_STANCE_CROUCH = 0x1004U, /**< Crouching (alt stance). */
-    ALT_STANCE_STAND_BLOCK = 0x1005U, /**< Blocking an attack while standing (alt stance). */
-    ALT_STANCE_CROUCH_BLOCK = 0x1006U, /**< Blocking an attack while crouching (alt stance). */
-    ALT_STANCE_PRE_JUMP = 0x1007U, /**< Frames before jumping (alt stance). */
-    ALT_STANCE_JUMP_FORWARD = 0x1008U, /**< Jumping forward (alt stance). */
-    ALT_STANCE_JUMP_NEUTRAL = 0x1009U, /**< Jumping vertically (alt stance). */
-    ALT_STANCE_JUMP_BACKWARD = 0x100AU, /**< Jumping backward (alt stance). */
-    ALT_STANCE_STAND_GETTING_HIT = 0x100BU, /**< Getting hit while standing (alt stance). */
-    ALT_STANCE_CROUCH_GETTING_HIT = 0x100CU, /**< Getting hit while crouching (alt stance). */
-    ALT_STANCE_AIR_GETTING_HIT = 0x100DU, /**< Getting hit in midair (alt stance). */
-    ALT_STANCE_AIR_RESET = 0x100EU, /**< The character landing on their feet after getting hit in midair (alt stance). */
-    ALT_STANCE_KNOCKDOWN = 0x100FU, /**< Getting knocked down (alt stance). */
-    ALT_STANCE_GET_UP = 0x1010U, /**< Getting up (alt stance). */
-    ALT_STANCE_STAND_LIGHT_PUNCH = 0x1100U, /**< Standing light punch (5LP) (alt stance). */
-    ALT_STANCE_STAND_HEAVY_PUNCH = 0x1101U, /**< Standing heavy punch (5HP) (alt stance). */
-    ALT_STANCE_STAND_LIGHT_KICK = 0x1102U, /**< Standing light kick (5LK) (alt stance). */
-    ALT_STANCE_STAND_HEAVY_KICK = 0x1103U, /**< Standing heavy kick (5HK) (alt stance). */
-    ALT_STANCE_CROUCH_LIGHT_PUNCH = 0x1104U, /**< Crouching light punch (2LP) (alt stance). */
-    ALT_STANCE_CROUCH_HEAVY_PUNCH = 0x1105U, /**< Crouching heavy punch (2HP), universal anti-air (alt stance). */
-    ALT_STANCE_CROUCH_LIGHT_KICK = 0x1106U, /**< Crouching light kick (2LK) (alt stance). */
-    ALT_STANCE_CROUCH_HEAVY_KICK = 0x1107U, /**< Crouching heavy kick (2HK), aka sweep (alt stance). */
-    ALT_STANCE_JUMP_LIGHT_PUNCH = 0x1108U, /**< Jumping light punch (j.LP) (alt stance). */
-    ALT_STANCE_JUMP_HEAVY_PUNCH = 0x1109U, /**< Jumping heavy punch (j.HP) (alt stance). */
-    ALT_STANCE_JUMP_LIGHT_KICK = 0x110AU, /**< Jumping light kick (j.LK) (alt stance). */
-    ALT_STANCE_JUMP_HEAVY_KICK = 0x110BU, /**< Jumping heavy kick (j.HK) (alt stance). */
-    ALT_STANCE_FORWARD_LIGHT_KICK = 0x110CU, /**< Forward light kick (6LK), universal overhead (alt stance). */
-    ALT_STANCE_FORWARD_THROW = 0x1180U, /**< Throwing the opponent forwards (alt stance). */
-    ALT_STANCE_BACKWARD_THROW = 0x1181U, /**< Throwing the opponent backwards (alt stance). */
-    ALT_STANCE_SPECIAL_1 = 0x1200U, /**< First special move (alt stance). */
-    ALT_STANCE_SPECIAL_2 = 0x1201U, /**< Second special move (alt stance). */
-    ALT_STANCE_SPECIAL_3 = 0x1202U, /**< Third special move (alt stance). */
-    ALT_STANCE_SPECIAL_4 = 0x1203U, /**< Fourth special move (alt stance). */
-    ALT_STANCE_SPECIAL_5 = 0x1204U, /**< Fifth special move (alt stance). */
-    ALT_STANCE_SPECIAL_6 = 0x1205U, /**< Sixth special move (alt stance). */
-    ALT_STANCE_SPECIAL_7 = 0x1206U, /**< Seventh special move (alt stance). */
-    ALT_STANCE_SPECIAL_8 = 0x1207U, /**< Eighth special move (alt stance). */
-    ALT_STANCE_SPECIAL_9 = 0x1208U, /**< Nineth special move (alt stance). */
-    ALT_STANCE_SPECIAL_10 = 0x1209U, /**< Tenth special move (alt stance). */
-    ALT_STANCE_SUPER = 0x1300U, /**< The character's Super Art (alt stance). */
-    ALT_STANCE_MISC_ASSET_1 = 0x1400U, /**< First miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_2 = 0x1401U, /**< Second miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_3 = 0x1402U, /**< Third miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_4 = 0x1403U, /**< Fourth miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_5 = 0x1404U, /**< Fifth miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_6 = 0x1405U, /**< Sixth miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_7 = 0x1406U, /**< Seventh miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_8 = 0x1407U, /**< Eighth miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_9 = 0x1408U, /**< Nineth miscellaneous asset (alt stance). */
-    ALT_STANCE_MISC_ASSET_10 = 0x1409U, /**< Tenth miscellaneous asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_1 = 0x1500U, /**< First character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_2 = 0x1501U, /**< Second character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_3 = 0x1502U, /**< Third character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_4 = 0x1503U, /**< Fourth character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_5 = 0x1504U, /**< Fifth character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_6 = 0x1505U, /**< Sixth character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_7 = 0x1506U, /**< Seventh character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_8 = 0x1507U, /**< Eighth character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_9 = 0x1508U, /**< Nineth character-specific meter asset (alt stance). */
-    ALT_STANCE_CHARACTER_METER_ASSET_10 = 0x1509U, /**< Tenth character-specific meter asset (alt stance). */
+    CHARACTER_SPECIFIC_METER_ASSETS_BEGIN = 0xF000U, /**< Begins the definition of character-specific meter assets. */
+    CHARACTER_SPECIFIC_METER_ASSETS_END = 0xF0FFU, /**< Ends the definition of character-specific meter assets. */
+    MISC_ASSETS_BEGIN = 0xF100U, /**< Begins the definition of miscellaneous assets. */
+    MISC_ASSETS_END = 0xF1FFU, /**< Ends the definition of miscellaneous assets. */
     CHARACTER_SELECTION_IMAGE = 0xFF00U, /**< Image of the character on the character selection screen. */
     CHARACTER_WIN_IMAGE = 0xFF01U, /**< Image shown after a game if the character wins. */
     CHARACTER_LOSS_IMAGE = 0xFF02U, /**< Image shown after a game if the character loses. */
@@ -285,21 +200,57 @@ public:
  */
 bool boxTypeToColor(SDL_Renderer*& renderer, BoxType boxType, bool outline);
 
+enum KnockbackLevel : uint8_t {
+    MILD,
+    MEDIUM,
+    HEAVY,
+    KNOCKS_DOWN
+};
+
+struct HitboxProperties {
+    bool blockableHigh = true;
+    bool blockableLow = true;
+    bool specialCancelable = true;
+    bool superCancelable = true;
+    KnockbackLevel knockback = MILD;
+    bool hardKnockdown = false;
+    bool airReset = true;
+    unsigned short hitStun, blockStun;
+    signed short hitPushback, blockPushback;
+    unsigned short xKnockback;
+    signed short yKnockback;
+    explicit HitboxProperties(uint8_t data);
+    void updateStatsNoKnockdown(SDL_IOStream*& stream);
+    void updateStatsKnockdown(SDL_IOStream*& stream);
+    HitboxProperties() = default;
+    ~HitboxProperties() = default;
+};
+
+struct CharacterBox {
+    BoxType boxType = NULL_TERMINATOR;
+    HitboxProperties hitboxProperties;
+    Buffer<signed short> boxBuffer;
+    SDL_FRect* rect = nullptr;
+    explicit CharacterBox(SDL_IOStream*& stream, BoxType currentBoxType);
+    CharacterBox(BoxType currentBoxType, HitboxProperties hitboxProperties, float x, float y, float width, float height);
+    CharacterBox() = default;
+    ~CharacterBox() = default;
+};
+
 /**
  * Represents a frame of an animation.
  */
 class Sprite {
 private:
     Buffer<unsigned short> spriteSheetBuffer; /**< A @c Buffer holding the data for where on the sprite sheet the sprite is located. */
-    Buffer<signed short> boxBuffer; /**< A @c Buffer holding the data for a box's coordinates and dimensions. */
     SDL_Texture* texture; /**< The texture used in rendering the frame. */
     unsigned short length; /**< How many frames (1/60 of a second) to show the sprite for. */
     SDL_FRect* spriteSheetArea; /**< The area of the sprite sheet where the sprite's image is located. */
 public:
     signed short xOffset = 0x0000; /**< The horizontal offset of this asset. */
     signed short yOffset = 0x0000; /**< The vertical offset of this asset. */
-    std::map<BoxType, std::vector<SDL_FRect*>> boxes; /**< The sprite's boxes, along with their type, updated to the location of the sprite on the screen. */
-    std::map<BoxType, std::vector<SDL_FRect*>> boxesWithAbsoluteLocation; /**< The sprite's boxes, along with their type, with the absolute location given by the data. */
+    std::vector<CharacterBox> charBoxes; /**< The sprite's boxes, stored in a struct. */
+    std::vector<CharacterBox> charBoxesWithAbsoluteLocation; /**< The sprite's boxes, stored in a struct, with their absolute location. */
     /**
      * Constructs a sprite, reading from the stream of data and the sprite sheet.
      * @param stream The stream of data to read from.

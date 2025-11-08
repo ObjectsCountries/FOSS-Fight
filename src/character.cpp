@@ -177,18 +177,87 @@ bool boxTypeToColor(SDL_Renderer*& renderer, const BoxType boxType, const bool t
             return SDL_SetRenderDrawColor(renderer, 0x00U, 0xFFU, 0x00U, alpha); // green
         case PROXIMITY_GUARD:
             return SDL_SetRenderDrawColor(renderer, 0xFFU, 0xFFU, 0x00U, alpha); // yellow
-        case NON_CANCELABLE_HITBOX:
-        case SPECIAL_CANCELABLE_HITBOX:
-        case SUPER_CANCELABLE_HITBOX:
-        case SPECIAL_SUPER_CANCELABLE_HITBOX:
-            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0x00U, 0x00U, alpha); // red
         default:
-            throw DataException<unsigned char>(
-                std::string(__PRETTY_FUNCTION__) +
-                " while determining box color",
-                std::string("Unknown box type"),
-                static_cast<unsigned char>(boxType));
+            return SDL_SetRenderDrawColor(renderer, 0xFFU, 0x00U, 0x00U, alpha); // red
     }
+}
+
+HitboxProperties::HitboxProperties(uint8_t data) {
+    this->blockableHigh = data & (1 << 7);
+    this->blockableLow = data & (1 << 6);
+    this->specialCancelable = data & (1 << 5);
+    this->superCancelable = data & (1 << 4);
+    this->knockback = static_cast<KnockbackLevel>((data & (1 << 3)) | (data & (1 << 2)));
+    this->hardKnockdown = data & (1 << 1);
+    this->airReset = data & (1 << 0);
+}
+
+void HitboxProperties::updateStatsNoKnockdown(SDL_IOStream*& stream) {
+    if (!SDL_ReadU16BE(stream, &this->hitStun)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->hitStun", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadU16BE(stream, &this->blockStun)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->blockStun", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadS16BE(stream, &this->hitPushback)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->hitPushback", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadS16BE(stream, &this->blockPushback)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->blockPushback", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+}
+
+void HitboxProperties::updateStatsKnockdown(SDL_IOStream*& stream) {
+    if (!SDL_ReadU16BE(stream, &this->xKnockback)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->xKnockback", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadU16BE(stream, &this->blockStun)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->blockStun", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadS16BE(stream, &this->yKnockback)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->yKnockback", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+    if (!SDL_ReadS16BE(stream, &this->blockPushback)) {
+        const std::string error(SDL_GetError());
+        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to this->blockPushback", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+    }
+}
+
+CharacterBox::CharacterBox(SDL_IOStream*& stream, BoxType currentBoxType)
+    : boxType(currentBoxType) {
+    if (this->boxType >= HITBOX_BEGIN && this->boxType <= HITBOX_END) {
+        this->hitboxProperties = HitboxProperties(this->boxType % 256);
+    }
+    signed short bufferItem;
+    for (int k = 0; k < 4; ++k) {
+        if (SDL_ReadS16BE(stream, &bufferItem)) {
+            this->boxBuffer.assign(bufferItem);
+        } else {
+            const std::string error(SDL_GetError());
+            throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to bufferItem", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
+        }
+    }
+    this->rect = new SDL_FRect(this->boxBuffer.toFRect());
+    if (this->boxType >= HITBOX_BEGIN && this->boxType <= HITBOX_END) {
+        if (this->hitboxProperties.knockback == KNOCKS_DOWN) {
+            this->hitboxProperties.updateStatsKnockdown(stream);
+        } else {
+            this->hitboxProperties.updateStatsNoKnockdown(stream);
+        }
+    }
+}
+
+CharacterBox::CharacterBox(const BoxType currentBoxType, const HitboxProperties hitboxProperties, float x, float y, float width, float height)
+    : boxType(currentBoxType),
+    hitboxProperties{hitboxProperties} {
+    this->rect = new SDL_FRect(x, y, width, height);
 }
 
 Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spriteSheet) {
@@ -241,7 +310,6 @@ Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spr
     }
     unsigned short boxType;
     unsigned short count;
-    signed short bufferItem;
     do {
         if (!SDL_ReadU16BE(stream, &boxType)) {
             const std::string error(SDL_GetError());
@@ -253,20 +321,15 @@ Sprite::Sprite(SDL_IOStream*& stream, SDL_Renderer*& renderer, SDL_Surface*& spr
                 throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to count", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
             }
             for (unsigned short j = 0U; j < count; ++j) {
-                for (int k = 0; k < 4; ++k) {
-                    if (SDL_ReadS16BE(stream, &bufferItem)) {
-                        this->boxBuffer.assign(bufferItem);
-                    } else {
-                        const std::string error(SDL_GetError());
-                        throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while assigning to bufferItem", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
-                    }
-                }
-                this->boxes[static_cast<BoxType>(boxType)].emplace_back(new SDL_FRect(this->boxBuffer.toFRect()));
-                this->boxesWithAbsoluteLocation[static_cast<BoxType>(boxType)].emplace_back(new SDL_FRect(this->boxBuffer.toFRect()));
-                this->boxBuffer.clear();
+                this->charBoxes.emplace_back(
+                    stream, static_cast<BoxType>(boxType)
+                );
             }
         }
     } while (boxType != NULL_TERMINATOR);
+    for (const auto& box : this->charBoxes) {
+        this->charBoxesWithAbsoluteLocation.emplace_back(box.boxType, box.hitboxProperties, box.rect->x, box.rect->y, box.rect->w, box.rect->h);
+    }
 }
 
 
@@ -334,7 +397,6 @@ Sprite::Sprite(const Sprite& reference,
         || !copy.copyHitboxes) {
         unsigned short boxType;
         unsigned short count;
-        signed short bufferItem;
         do {
             if (!SDL_ReadU16BE(stream, &boxType)) {
                 const std::string error(SDL_GetError());
@@ -346,51 +408,42 @@ Sprite::Sprite(const Sprite& reference,
                     throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a sprite and assigning to count", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
                 }
                 for (unsigned short j = 0x0000U; j < count; ++j) {
-                    for (int k = 0; k < 4; ++k) {
-                        if (SDL_ReadS16BE(stream, &bufferItem)) {
-                            this->boxBuffer.assign(bufferItem);
-                        } else {
-                            const std::string error(SDL_GetError());
-                            throw DataException<long>(std::string(__PRETTY_FUNCTION__) + " while copying a sprite and assigning to bufferItem", error.empty() ? std::string("Reached EOF") : error, SDL_TellIO(stream));
-                        }
-                    }
-                    this->boxes[static_cast<BoxType>(boxType)].emplace_back(new SDL_FRect(this->boxBuffer.toFRect()));
-                    this->boxesWithAbsoluteLocation[static_cast<BoxType>(boxType)].emplace_back(new SDL_FRect(this->boxBuffer.toFRect()));
-                    this->boxBuffer.clear();
+                    this->charBoxes.emplace_back(
+                        stream, static_cast<BoxType>(boxType)
+                    );
                 }
             }
         } while (boxType != NULL_TERMINATOR);
+        for (const auto& box : this->charBoxes) {
+            this->charBoxesWithAbsoluteLocation.emplace_back(box.boxType, box.hitboxProperties, box.rect->x, box.rect->y, box.rect->w, box.rect->h);
+        }
     }
     bool mustCopy = false;
-    for (const auto& [type, allBoxes] : reference.boxes) {
-        for (const SDL_FRect* box : allBoxes) {
-            switch (type) {
-                case NULL_TERMINATOR:
-                    mustCopy = false;
-                    break;
-                case HURTBOX:
-                    mustCopy = copy.copyHurtboxes;
-                    break;
-                case COMMAND_GRAB:
-                    mustCopy = copy.copyCommandGrabBoxes;
-                    break;
-                case THROW_PUSH_GROUND_COLLISION:
-                    mustCopy = copy.copyThrowPushAndGroundCollisionBoxes;
-                    break;
-                case PROXIMITY_GUARD:
-                    mustCopy = copy.copyProximityGuardBoxes;
-                    break;
-                case NON_CANCELABLE_HITBOX:
-                case SPECIAL_CANCELABLE_HITBOX:
-                case SUPER_CANCELABLE_HITBOX:
-                case SPECIAL_SUPER_CANCELABLE_HITBOX:
-                    mustCopy = copy.copyHitboxes;
-                    break;
-            }
-            if (mustCopy) {
-                this->boxes[type].emplace_back(new SDL_FRect(box->x, box->y, box->w, box->h));
-                this->boxesWithAbsoluteLocation[type].emplace_back(new SDL_FRect(box->x, box->y, box->w, box->h));
-            }
+    for (const auto& box : reference.charBoxes) {
+        BoxType type = box.boxType;
+        switch (type) {
+            case NULL_TERMINATOR:
+                mustCopy = false;
+                break;
+            case HURTBOX:
+                mustCopy = copy.copyHurtboxes;
+                break;
+            case COMMAND_GRAB:
+                mustCopy = copy.copyCommandGrabBoxes;
+                break;
+            case THROW_PUSH_GROUND_COLLISION:
+                mustCopy = copy.copyThrowPushAndGroundCollisionBoxes;
+                break;
+            case PROXIMITY_GUARD:
+                mustCopy = copy.copyProximityGuardBoxes;
+                break;
+            default:
+                mustCopy = copy.copyHitboxes;
+                break;
+        }
+        if (mustCopy) {
+            this->charBoxes.emplace_back(type, box.hitboxProperties, box.rect->x, box.rect->y, box.rect->w, box.rect->h);
+            this->charBoxesWithAbsoluteLocation.emplace_back(type, box.hitboxProperties, box.rect->x, box.rect->y, box.rect->w, box.rect->h);
         }
     }
 }
@@ -415,22 +468,18 @@ void Sprite::render(SDL_Renderer*& renderer, const SDL_FRect* location) const {
         throw DataException<unsigned int>(std::string(__PRETTY_FUNCTION__) + " while rendering sprite texture", std::string(SDL_GetError()));
     }
 #if DEBUG_RENDER_BOXES
-    for (const auto& [boxType, allBoxes] : this->boxes) {
-        if (!boxTypeToColor(renderer, boxType, false)) {
+    for (const auto& box : this->charBoxes) {
+        if (!boxTypeToColor(renderer, box.boxType, false)) {
             throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while setting box outline color", std::string(SDL_GetError()));
         }
-        for (const SDL_FRect* box : allBoxes) {
-            if (!SDL_RenderRect(renderer, box)) {
-                throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while rendering box outline", std::string(SDL_GetError()));
-            }
+        if (!SDL_RenderRect(renderer, box.rect)) {
+            throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while rendering box outline", std::string(SDL_GetError()));
         }
-        if (!boxTypeToColor(renderer, boxType, true)) {
+        if (!boxTypeToColor(renderer, box.boxType, true)) {
             throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while setting box color", std::string(SDL_GetError()));
         }
-        for (const SDL_FRect* box : allBoxes) {
-            if (!SDL_RenderFillRect(renderer, box)) {
-                throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while rendering box", std::string(SDL_GetError()));
-            }
+        if (!SDL_RenderFillRect(renderer, box.rect)) {
+            throw DataException<unsigned char>(std::string(__PRETTY_FUNCTION__) + " while rendering box", std::string(SDL_GetError()));
         }
     }
 #endif
@@ -613,11 +662,9 @@ GET_SPRITES(Debuggy)
         this->animations.at(IDLE).at(0).getSpriteSheetArea()->h * this->size);
     for (std::vector<Sprite>& allSprites : this->animations | std::views::values) {
         for (Sprite& spriteItem : allSprites) {
-            for (std::vector<SDL_FRect*>& boxItems : spriteItem.boxes | std::views::values) {
-                for (SDL_FRect*& boxItem : boxItems) {
-                    multiplySizeRect(boxItem, this->size);
-                    changeLocationRect(boxItem, 400.0f, Character::ground->y - boxItem->h);
-                }
+            for (CharacterBox& boxItem : spriteItem.charBoxes) {
+                multiplySizeRect(boxItem.rect, this->size);
+                changeLocationRect(boxItem.rect, 400.0f, Character::ground->y - boxItem.rect->h);
             }
         }
     }
@@ -702,10 +749,8 @@ AnimationType Character::processInputs() {
                 moveRect(this->coordinates, this->jumpBackwardXVelocity, this->currentYVelocity);
                 for (std::vector<Sprite>& sprites : this->animations | std::views::values) {
                     for (Sprite& spr : sprites) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->jumpBackwardXVelocity, this->currentYVelocity);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            moveRect(boxItem.rect, this->jumpBackwardXVelocity, this->currentYVelocity);
                         }
                     }
                 }
@@ -716,10 +761,8 @@ AnimationType Character::processInputs() {
                 moveRect(this->coordinates, this->jumpForwardXVelocity, this->currentYVelocity);
                 for (std::vector<Sprite>& sprites : this->animations | std::views::values) {
                     for (Sprite& spr : sprites) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->jumpForwardXVelocity, this->currentYVelocity);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            moveRect(boxItem.rect, this->jumpForwardXVelocity, this->currentYVelocity);
                         }
                     }
                 }
@@ -730,10 +773,8 @@ AnimationType Character::processInputs() {
                 moveRect(this->coordinates, 0.0f, this->currentYVelocity);
                 for (std::vector<Sprite>& sprites : this->animations | std::views::values) {
                     for (Sprite& spr : sprites) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, 0.0f, this->currentYVelocity);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            moveRect(boxItem.rect, 0.0f, this->currentYVelocity);
                         }
                     }
                 }
@@ -744,20 +785,18 @@ AnimationType Character::processInputs() {
                 break;
         }
         this->currentYVelocity += this->gravity;
-        const auto it = std::ranges::find_if(this->animations.at(this->currentAnimation).at(this->frame).boxes,
+        const auto it = std::ranges::find_if(this->animations.at(this->currentAnimation).at(this->frame).charBoxes,
                                        [](const auto& box) {
-                                           return box.first == THROW_PUSH_GROUND_COLLISION;
+                                           return box.boxType == THROW_PUSH_GROUND_COLLISION;
                                        });
-        if (it != (this->animations.at(this->currentAnimation).at(this->frame).boxes).end()) {
-            if (std::ranges::any_of(it->second, [](SDL_FRect*& box) {return SDL_HasRectIntersectionFloat(box, Character::ground);})) {
+        if (it != (this->animations.at(this->currentAnimation).at(this->frame).charBoxes).end()) {
+            if (SDL_HasRectIntersectionFloat(it->rect, Character::ground)) {
                 this->currentXVelocity = 0.0f;
                 this->currentYVelocity = 0.0f;
                 for (std::vector<Sprite>& sprites : this->animations | std::views::values) {
                     for (Sprite& spr : sprites) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                changeLocationRect(boxItem, boxItem->x, Character::ground->y - boxItem->h);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            changeLocationRect(boxItem.rect, boxItem.rect->x, Character::ground->y - boxItem.rect->h);
                         }
                     }
                 }
@@ -788,10 +827,8 @@ AnimationType Character::processInputs() {
                 moveRect(this->coordinates, this->walkBackwardSpeed, 0.0f);
                 for (std::vector<Sprite>& sprites : this->animations | std::views::values) {
                     for (Sprite& spr : sprites) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->walkBackwardSpeed, 0.0f);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            moveRect(boxItem.rect, this->walkBackwardSpeed, 0.0f);
                         }
                     }
                 }
@@ -822,10 +859,8 @@ AnimationType Character::processInputs() {
                 moveRect(this->coordinates, this->walkForwardSpeed, 0.0f);
                 for (std::vector<Sprite>& spriteVector : this->animations | std::views::values) {
                     for (Sprite& spr : spriteVector) {
-                        for (std::vector<SDL_FRect*>& boxItems : spr.boxes | std::views::values) {
-                            for (SDL_FRect*& boxItem : boxItems) {
-                                moveRect(boxItem, this->walkForwardSpeed, 0.0f);
-                            }
+                        for (CharacterBox& boxItem : spr.charBoxes) {
+                            moveRect(boxItem.rect, this->walkForwardSpeed, 0.0f);
                         }
                     }
                 }
@@ -863,13 +898,12 @@ void Character::render(SDL_Renderer*& renderer) {
     changeDimensionsRect(this->coordinates,
         this->animations.at(this->currentAnimation).at(this->frame).getSpriteSheetArea()->w * this->size,
         this->animations.at(this->currentAnimation).at(this->frame).getSpriteSheetArea()->h * this->size);
-    for (auto& [boxType, boxes] : this->animations.at(this->currentAnimation).at(this->frame).boxes) {
-        for (size_t i = 0UZ; i < boxes.size(); ++i) {
-            changeLocationRect(
-                boxes.at(i),
-                this->coordinates->x + this->animations.at(this->currentAnimation).at(this->frame).boxesWithAbsoluteLocation.at(boxType).at(i)->x * this->size,
-                this->coordinates->y + this->animations.at(this->currentAnimation).at(this->frame).boxesWithAbsoluteLocation.at(boxType).at(i)->y * this->size);
-        }
+
+    for (size_t i = 0UZ; i < this->animations.at(this->currentAnimation).at(this->frame).charBoxes.size(); ++i) {
+        changeLocationRect(
+            this->animations.at(this->currentAnimation).at(this->frame).charBoxes.at(i).rect,
+            this->coordinates->x + this->animations.at(this->currentAnimation).at(this->frame).charBoxesWithAbsoluteLocation.at(i).rect->x * this->size,
+            this->coordinates->y + this->animations.at(this->currentAnimation).at(this->frame).charBoxesWithAbsoluteLocation.at(i).rect->y * this->size);
     }
     this->renderCoordinates->x = this->coordinates->x + this->animations.at(this->currentAnimation).at(this->frame).xOffset;
     this->renderCoordinates->y = this->coordinates->y + this->animations.at(this->currentAnimation).at(this->frame).yOffset;
